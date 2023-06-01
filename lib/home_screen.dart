@@ -23,22 +23,23 @@ class _HomeScreenState extends State<HomeScreen> {
           child: SafeArea(
             child: Column(
               children: [
-                // Row(
-                //   mainAxisAlignment: MainAxisAlignment.end,
-                //   children: [
-                //     Padding(
-                //       padding: const EdgeInsets.all(8.0),
-                //       child: GestureDetector(
-                //         onTap: () => setState(() {
-                //           Navigator.pushNamed(context, '/settings');
-                //         }),
-                //         child: const Icon(
-                //           Icons.settings,
-                //         ),
-                //       ),
-                //     )
-                //   ],
-                // ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: GestureDetector(
+                        onTap: () => setState(() {
+                          Navigator.pushNamed(context, '/settings');
+                        }),
+                        child: const Icon(
+                          Icons.settings,
+                          size: 28,
+                        ),
+                      ),
+                    )
+                  ],
+                ),
 
                 // Center(
                 //   child: Expanded(

@@ -10,14 +10,9 @@ class Radial extends StatefulWidget {
 }
 
 class _StateRadial extends State<Radial> {
-
   @override
   Widget build(BuildContext context) {
-
-    // for(int i = 0 ; i < 100 ; i ++) {
-    //    value = demo.randomData();
-    // }
-
+  NoiseApp noiseApp = NoiseApp();
     return SfRadialGauge(
       title: GaugeTitle(text: "dB Meter"),
       enableLoadingAnimation: true,
