@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'data_and_chart.dart';
-import 'radial.dart';
+import 'dB_Data.dart';
 
 
 class HomeScreen extends StatefulWidget {
@@ -15,10 +14,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        // appBar: AppBar(
-        //   centerTitle: true,
-        //   title: const Text("Sound Meter",),
-        // ),
         body: Container(
           child: SafeArea(
             child: Column(

@@ -25,6 +25,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:noise_meter/noise_meter.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
+import 'dB_Chart.dart';
 import 'dB_meter.dart';
 
 class NoiseApp extends StatefulWidget {
@@ -146,33 +147,7 @@ class NoiseAppState extends State<NoiseApp> {
         children: [
           Padding(
             padding: const EdgeInsets.all(12.0),
-            child: DropdownButtonFormField(
-              value: selectedValue,
-              items: areaTypeList
-                  .map((e) => DropdownMenuItem(
-                        value: e,
-                        child: Text(e),
-                      ))
-                  .toList(),
-              onChanged: (val) {
-                setState(
-                  () {
-                    selectedValue = val as String;
-                  },
-                );
-              },
-              icon: Icon(Icons.arrow_drop_down_circle,
-                  color: Colors.purple.shade400),
-              dropdownColor: Colors.deepPurple.shade50,
-              decoration: InputDecoration(
-                labelText: "Choose Area",
-                prefixIcon: Icon(
-                  Icons.accessibility_new_rounded,
-                  color: Colors.purple.shade500,
-                ),
-                border: UnderlineInputBorder(),
-              ),
-            ),
+            child: buildDropdownButtonFormField(),
           ),
 
           Expanded(
@@ -189,7 +164,7 @@ class NoiseAppState extends State<NoiseApp> {
 
           // Chart according the noise meter
           Expanded(
-            child: RadialGauge(chartData: chartData),
+            child: DBChart(chartData: chartData),
           ),
 
           // space between chart and floatingActionButton
@@ -200,43 +175,33 @@ class NoiseAppState extends State<NoiseApp> {
       ),
     );
   }
-}
 
-class RadialGauge extends StatelessWidget {
-  const RadialGauge({
-    super.key,
-    required this.chartData,
-  });
-
-  final List<ChartData> chartData;
-
-  @override
-  Widget build(BuildContext context) {
-    return SfCartesianChart(
-      title: ChartTitle(text: 'dB Graph'),
-      series: <LineSeries<ChartData, double>>[
-        LineSeries<ChartData, double>(
-            dataLabelSettings: const DataLabelSettings(
-              // isVisible: true,
-            ),
-            dataSource: chartData,
-            xAxisName: 'Time',
-            yAxisName: 'dB',
-            name: 'dB values over time',
-            xValueMapper: (ChartData value, _) => value.frames,
-            yValueMapper: (ChartData value, _) => value.maxDB?.floor(),
-            animationDuration: 1
-       ),
-      ],
+  DropdownButtonFormField<String> buildDropdownButtonFormField() {
+    return DropdownButtonFormField(
+      value: selectedValue,
+      items: areaTypeList
+          .map((e) => DropdownMenuItem(
+                value: e,
+                child: Text(e),
+              ))
+          .toList(),
+      onChanged: (val) {
+        setState(
+          () {
+            selectedValue = val as String;
+          },
+        );
+      },
+      icon: Icon(Icons.arrow_drop_down_circle, color: Colors.purple.shade400),
+      dropdownColor: Colors.deepPurple.shade50,
+      decoration: InputDecoration(
+        labelText: "Choose Area",
+        prefixIcon: Icon(
+          Icons.accessibility_new_rounded,
+          color: Colors.purple.shade500,
+        ),
+        border: UnderlineInputBorder(),
+      ),
     );
   }
-}
-
-
-class ChartData {
-  final double? maxDB;
-  final double? meanDB;
-  final double frames;
-
-  ChartData(this.maxDB, this.meanDB, this.frames);
 }
