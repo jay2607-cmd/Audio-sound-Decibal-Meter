@@ -25,50 +25,67 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:noise_meter/noise_meter.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
-import 'package:syncfusion_flutter_gauges/gauges.dart';
+import 'dB_meter.dart';
 
 class NoiseApp extends StatefulWidget {
+  const NoiseApp({super.key});
+
   @override
-  _NoiseAppState createState() => _NoiseAppState();
+  NoiseAppState createState() => NoiseAppState();
 }
 
-class _NoiseAppState extends State<NoiseApp> {
-  _NoiseAppState() {
-    _selectedValue = _areaTypeList[0];
+class NoiseAppState extends State<NoiseApp> {
+  NoiseAppState() {
+    selectedValue = areaTypeList[0];
   }
 
   // variable for dropdown list
-  final _areaTypeList = ["Living Room", "Children's Room", "Study Room" , "Library" , "Kitchen" , "Bedroom" , "Bathroom" , "Toilet" ,"Stairs" , "Home office" , "Car" , "Office" , "HeadPhones"];
+  final areaTypeList = [
+    "Living Room (35- 50 dB)",
+    "Children's Room (35- 40 dB)",
+    "Study Room (35- 35 dB)",
+    "Library (35- 40 dB)",
+    "Kitchen (40- 45 dB)",
+    "Bedroom (20- 25 dB)",
+    "Bathroom (42- 47 dB)",
+    "Toilet (35- 50 dB)",
+    "Stairs (35- 50 dB)",
+    "Home office (35- 50 dB)",
+    "Car (50- 70 dB)",
+    "Office (45- 60 dB)",
+    "HeadPhones (60- 85 dB)"
+  ];
 
-  String? _selectedValue;
+  String? selectedValue;
 
   // five variables for noise recording
-  bool _isRecording = false;
-  StreamSubscription<NoiseReading>? _noiseSubscription;
-  late NoiseMeter _noiseMeter;
+  bool isRecording = false;
+  StreamSubscription<NoiseReading>? noiseSubscription;
+  late NoiseMeter noiseMeter;
   late double maxDB = 0;
   double? meanDB;
 
   // These three variables for chart
-  List<_ChartData> chartData = <_ChartData>[];
+  List<ChartData> chartData = <ChartData>[];
   ChartSeriesController? _chartSeriesController;
   late int previousMillis;
 
   @override
   void initState() {
     super.initState();
-    _noiseMeter = NoiseMeter(onError);
+    noiseMeter = NoiseMeter(onError);
+    start();
   }
 
   void onData(NoiseReading noiseReading) {
     setState(() {
-      if (!_isRecording) _isRecording = true;
+      if (!isRecording) isRecording = true;
     });
     maxDB = noiseReading.maxDecibel;
     meanDB = noiseReading.meanDecibel;
 
     chartData.add(
-      _ChartData(
+      ChartData(
         maxDB,
         meanDB,
         ((DateTime.now().millisecondsSinceEpoch - previousMillis) / 1000)
@@ -81,13 +98,13 @@ class _NoiseAppState extends State<NoiseApp> {
     if (kDebugMode) {
       print(e.toString());
     }
-    _isRecording = false;
+    isRecording = false;
   }
 
   void start() async {
     previousMillis = DateTime.now().millisecondsSinceEpoch;
     try {
-      _noiseSubscription = _noiseMeter.noiseStream.listen(onData);
+      noiseSubscription = noiseMeter.noiseStream.listen(onData);
     } catch (e) {
       print(e);
     }
@@ -95,10 +112,10 @@ class _NoiseAppState extends State<NoiseApp> {
 
   void stop() async {
     try {
-      _noiseSubscription!.cancel();
-      _noiseSubscription = null;
+      noiseSubscription!.cancel();
+      noiseSubscription = null;
 
-      setState(() => _isRecording = false);
+      setState(() => isRecording = false);
     } catch (e) {
       if (kDebugMode) {
         print('stopRecorder error: $e');
@@ -117,44 +134,30 @@ class _NoiseAppState extends State<NoiseApp> {
     return Scaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: FloatingActionButton.extended(
-        label: Text(_isRecording ? 'Stop' : 'Start'),
-        onPressed: _isRecording ? stop : start,
-        icon: !_isRecording
+        label: Text(isRecording ? 'Stop' : 'Start'),
+        onPressed: isRecording ? stop : start,
+        icon: !isRecording
             ? const Icon(Icons.not_started_sharp)
             : const Icon(Icons.stop_circle_sharp),
-        backgroundColor: _isRecording ? Colors.red : Colors.green,
+        backgroundColor: isRecording ? Colors.red : Colors.green,
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // DropdownButton(
-          //   value: _selectedValue,
-          //     items: _areaTypeList
-          //         .map((e) => DropdownMenuItem(
-          //               child: Text(e),
-          //               value: e,
-          //             ))
-          //         .toList(),
-          //     onChanged: (val) {
-          //     setState(() {
-          //       _selectedValue = val as String;
-          //     },);
-          //     },),
-
           Padding(
             padding: const EdgeInsets.all(12.0),
             child: DropdownButtonFormField(
-              value: _selectedValue,
-              items: _areaTypeList
+              value: selectedValue,
+              items: areaTypeList
                   .map((e) => DropdownMenuItem(
-                        child: Text(e),
                         value: e,
+                        child: Text(e),
                       ))
                   .toList(),
               onChanged: (val) {
                 setState(
                   () {
-                    _selectedValue = val as String;
+                    selectedValue = val as String;
                   },
                 );
               },
@@ -162,11 +165,11 @@ class _NoiseAppState extends State<NoiseApp> {
                   color: Colors.purple.shade400),
               dropdownColor: Colors.deepPurple.shade50,
               decoration: InputDecoration(
-                  labelText: "Choose Area",
-                  prefixIcon: Icon(
-                    Icons.accessibility_new_rounded,
-                    color: Colors.purple.shade500,
-                  ),
+                labelText: "Choose Area",
+                prefixIcon: Icon(
+                  Icons.accessibility_new_rounded,
+                  color: Colors.purple.shade500,
+                ),
                 border: UnderlineInputBorder(),
               ),
             ),
@@ -174,41 +177,7 @@ class _NoiseAppState extends State<NoiseApp> {
 
           Expanded(
               // Radial Gauge
-              child: SfRadialGauge(
-            title: const GaugeTitle(text: "dB Meter"),
-            enableLoadingAnimation: true,
-            axes: [
-              RadialAxis(
-                minimum: 0,
-                maximum: 150,
-                pointers: [
-                  NeedlePointer(
-                    value: maxDB,
-                    enableAnimation: true,
-                  )
-                ],
-                ranges: [
-                  GaugeRange(startValue: 0, endValue: 50, color: Colors.green),
-                  GaugeRange(
-                      startValue: 50, endValue: 100, color: Colors.orange),
-                  GaugeRange(startValue: 100, endValue: 160, color: Colors.red),
-                ],
-                annotations: [
-                  GaugeAnnotation(
-                    widget: Text(
-                      '${maxDB.floorToDouble()} dB',
-                      style: TextStyle(
-                        fontSize: 25.0,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    positionFactor: 0.5,
-                    angle: 90,
-                  )
-                ],
-              ),
-            ],
-          )),
+              child: dBMeter(maxDB: maxDB)),
 
           // depicts Mean dB
           Text(
@@ -220,23 +189,7 @@ class _NoiseAppState extends State<NoiseApp> {
 
           // Chart according the noise meter
           Expanded(
-            child: SfCartesianChart(
-              title: ChartTitle(text: 'dB Graph'),
-              // tooltipBehavior: TooltipBehavior(enable: true),
-              series: <LineSeries<_ChartData, double>>[
-                LineSeries<_ChartData, double>(
-                    dataLabelSettings: const DataLabelSettings(
-                      isVisible: true,
-                    ),
-                    dataSource: chartData,
-                    xAxisName: 'Time',
-                    yAxisName: 'dB',
-                    name: 'dB values over time',
-                    xValueMapper: (_ChartData value, _) => value.frames,
-                    yValueMapper: (_ChartData value, _) => value.maxDB?.floor(),
-                    animationDuration: 1),
-              ],
-            ),
+            child: RadialGauge(chartData: chartData),
           ),
 
           // space between chart and floatingActionButton
@@ -249,11 +202,41 @@ class _NoiseAppState extends State<NoiseApp> {
   }
 }
 
-class _ChartData {
+class RadialGauge extends StatelessWidget {
+  const RadialGauge({
+    super.key,
+    required this.chartData,
+  });
+
+  final List<ChartData> chartData;
+
+  @override
+  Widget build(BuildContext context) {
+    return SfCartesianChart(
+      title: ChartTitle(text: 'dB Graph'),
+      series: <LineSeries<ChartData, double>>[
+        LineSeries<ChartData, double>(
+            dataLabelSettings: const DataLabelSettings(
+              // isVisible: true,
+            ),
+            dataSource: chartData,
+            xAxisName: 'Time',
+            yAxisName: 'dB',
+            name: 'dB values over time',
+            xValueMapper: (ChartData value, _) => value.frames,
+            yValueMapper: (ChartData value, _) => value.maxDB?.floor(),
+            animationDuration: 1
+       ),
+      ],
+    );
+  }
+}
+
+
+class ChartData {
   final double? maxDB;
   final double? meanDB;
   final double frames;
 
-  _ChartData(this.maxDB, this.meanDB, this.frames);
+  ChartData(this.maxDB, this.meanDB, this.frames);
 }
-
