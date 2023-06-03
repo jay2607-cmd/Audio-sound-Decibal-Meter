@@ -15,16 +15,17 @@ class DBChart extends StatelessWidget {
       title: ChartTitle(text: 'dB Graph'),
       series: <LineSeries<ChartData, double>>[
         LineSeries<ChartData, double>(
-            dataLabelSettings: const DataLabelSettings(
-                isVisible: true,
-                ),
-            dataSource: chartData,
-            xAxisName: 'Time',
-            yAxisName: 'dB',
-            name: 'dB values over time',
-            xValueMapper: (ChartData value, _) => value.frames,
-            yValueMapper: (ChartData value, _) => value.maxDB?.floor(),
-            animationDuration: 1),
+          dataLabelSettings: const DataLabelSettings(
+            isVisible: true,
+          ),
+          dataSource: chartData,
+          xAxisName: 'Time',
+          yAxisName: 'dB',
+          name: 'dB values over time',
+          xValueMapper: (ChartData value, _) => value.frames,
+          yValueMapper: (ChartData value, _) => value.maxDB?.floor(),
+          animationDuration: 1
+        ),
       ],
     );
   }

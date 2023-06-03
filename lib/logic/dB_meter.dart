@@ -10,6 +10,7 @@ class dBMeter extends StatelessWidget {
 
   final double maxDB;
 
+
   @override
   Widget build(BuildContext context) {
     return SfRadialGauge(

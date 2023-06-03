@@ -25,6 +25,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:noise_meter/noise_meter.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
+import '../screens/save.dart';
 import 'dB_Chart.dart';
 import 'dB_meter.dart';
 
@@ -36,6 +37,8 @@ class NoiseApp extends StatefulWidget {
 }
 
 class NoiseAppState extends State<NoiseApp> {
+
+
   NoiseAppState() {
     selectedValue = areaTypeList[0];
   }
@@ -63,7 +66,7 @@ class NoiseAppState extends State<NoiseApp> {
   bool isRecording = false;
   StreamSubscription<NoiseReading>? noiseSubscription;
   late NoiseMeter noiseMeter;
-  late double maxDB = 0;
+  double maxDB = 0;
   double? meanDB;
 
   // These three variables for chart
@@ -78,6 +81,7 @@ class NoiseAppState extends State<NoiseApp> {
     start();
   }
 
+  //method for taking noise data
   void onData(NoiseReading noiseReading) {
     setState(() {
       if (!isRecording) isRecording = true;
@@ -95,6 +99,9 @@ class NoiseAppState extends State<NoiseApp> {
     );
   }
 
+
+
+  // error handle
   void onError(Object e) {
     if (kDebugMode) {
       print(e.toString());
@@ -111,6 +118,7 @@ class NoiseAppState extends State<NoiseApp> {
     }
   }
 
+  // User pressed stop
   void stop() async {
     try {
       noiseSubscription!.cancel();
@@ -134,13 +142,37 @@ class NoiseAppState extends State<NoiseApp> {
     }
     return Scaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: FloatingActionButton.extended(
-        label: Text(isRecording ? 'Stop' : 'Start'),
-        onPressed: isRecording ? stop : start,
-        icon: !isRecording
-            ? const Icon(Icons.not_started_sharp)
-            : const Icon(Icons.stop_circle_sharp),
-        backgroundColor: isRecording ? Colors.red : Colors.green,
+      floatingActionButton: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          FloatingActionButton.extended(
+            label: Text(isRecording ? 'Stop' : 'Start'),
+            onPressed: isRecording ? stop : start,
+            icon: !isRecording
+                ? const Icon(Icons.not_started_sharp)
+                : const Icon(Icons.stop_circle_sharp),
+            backgroundColor: isRecording ? Colors.red : Colors.green,
+          ),
+          SizedBox(
+            width: 15,
+          ),
+          FloatingActionButton.extended(
+            label: const Text("Save"),
+              // Within the `FirstRoute` widget
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) =>  Save(dBNoise: maxDB)),
+                );
+              }
+            // onPressed: isRecording ? stop : start,
+            // icon: !isRecording
+            //     ? const Icon(Icons.not_started_sharp)
+            //     : const Icon(Icons.stop_circle_sharp),
+            // backgroundColor: isRecording ? Colors.red : Colors.green,
+
+          ),
+        ],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
