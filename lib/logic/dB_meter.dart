@@ -35,7 +35,7 @@ class dBMeter extends StatelessWidget {
           annotations: [
             GaugeAnnotation(
               widget: Text(
-                '${maxDB.floorToDouble()} dB',
+                '${maxDB.toStringAsFixed(2)} dB',
                 style: TextStyle(
                   fontSize: 25.0,
                   fontWeight: FontWeight.bold,

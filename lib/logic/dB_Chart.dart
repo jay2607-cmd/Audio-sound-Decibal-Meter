@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
+// need to fix onResume() or onPause()
 class DBChart extends StatelessWidget {
   const DBChart({
     super.key,

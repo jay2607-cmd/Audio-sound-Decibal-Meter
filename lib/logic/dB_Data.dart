@@ -23,9 +23,11 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:jay_sound_meter/boxes/boxes.dart';
+import 'package:jay_sound_meter/database/save_model.dart';
 import 'package:noise_meter/noise_meter.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
-import '../screens/save.dart';
+import '../screens/save_main.dart';
 import 'dB_Chart.dart';
 import 'dB_meter.dart';
 
@@ -37,13 +39,14 @@ class NoiseApp extends StatefulWidget {
 }
 
 class NoiseAppState extends State<NoiseApp> {
-
+  DateTime currentDate = DateTime.now();
+  DateTime currentTime = DateTime.now();
 
   NoiseAppState() {
     selectedValue = areaTypeList[0];
   }
 
-  // variable for dropdown list
+  // variables for dropdown list
   final areaTypeList = [
     "Living Room (35- 50 dB)",
     "Children's Room (35- 40 dB)",
@@ -99,8 +102,6 @@ class NoiseAppState extends State<NoiseApp> {
     );
   }
 
-
-
   // error handle
   void onError(Object e) {
     if (kDebugMode) {
@@ -136,6 +137,10 @@ class NoiseAppState extends State<NoiseApp> {
 
   @override
   Widget build(BuildContext context) {
+    String date = "${currentDate.day}-${currentDate.month}-${currentDate.year}";
+    String time =
+        "${currentTime.hour}:${currentTime.minute}:${currentTime.second}";
+
     bool _isDark = Theme.of(context).brightness == Brightness.dark;
     if (chartData.length >= 10) {
       chartData.removeAt(0);
@@ -158,19 +163,28 @@ class NoiseAppState extends State<NoiseApp> {
           ),
           FloatingActionButton.extended(
             label: const Text("Save"),
-              // Within the `FirstRoute` widget
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) =>  Save(dBNoise: maxDB)),
-                );
-              }
-            // onPressed: isRecording ? stop : start,
-            // icon: !isRecording
-            //     ? const Icon(Icons.not_started_sharp)
-            //     : const Icon(Icons.stop_circle_sharp),
-            // backgroundColor: isRecording ? Colors.red : Colors.green,
+            onPressed: () {
+              final data = SaveModel(
+                  noiseData: maxDB,
+                  date: date,
+                  time: time,
+                  area: selectedValue.toString());
 
+              final box = Boxes.getData();
+
+              // forcefully added typecast
+              box.add(data);
+
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => SaveMain(
+                        noiseData: maxDB,
+                        date: date,
+                        time: time,
+                        area: selectedValue.toString())),
+              );
+            },
           ),
         ],
       ),
