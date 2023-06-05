@@ -1,25 +1,3 @@
-// import 'dart:async';
-// import 'dart:math';
-// import 'package:flutter/material.dart';
-//
-// class Data extends StatefulWidget {
-//   @override
-//   State<StatefulWidget> createState() => _DataState();
-// }
-//
-// class _DataState extends State<Data> {
-//
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Text("demo.randomData().toString()");
-//   }
-// }
-//
-//
-
-// https://github.com/syncfusion/flutter-examples/blob/master/lib/samples/chart/dynamic_updates/live_update/real_time_line_chart.dart
-
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -89,7 +67,7 @@ class NoiseAppState extends State<NoiseApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.resumed ||
-        state == AppLifecycleState.paused ) {
+        state == AppLifecycleState.paused) {
       chartData.clear();
     }
   }
@@ -158,7 +136,7 @@ class NoiseAppState extends State<NoiseApp> with WidgetsBindingObserver {
         "${currentTime.hour}:${currentTime.minute}:${currentTime.second}";
 
     bool _isDark = Theme.of(context).brightness == Brightness.dark;
-    if (chartData.length >= 10) {
+    if (chartData.length >= 100) {
       chartData.removeAt(0);
     }
     return Scaffold(
@@ -194,11 +172,8 @@ class NoiseAppState extends State<NoiseApp> with WidgetsBindingObserver {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => SaveMain(
-                        dBNoise: maxDB,
-                        date: date,
-                        time: time,
-                        area: selectedValue.toString())),
+                    builder: (context) =>
+                        SaveMain(maxDB, date, time, selectedValue.toString())),
               );
             },
           ),
@@ -217,11 +192,27 @@ class NoiseAppState extends State<NoiseApp> with WidgetsBindingObserver {
               child: dBMeter(maxDB: maxDB)),
 
           // depicts Mean dB
-          Text(
-            meanDB != null
-                ? 'Average: ${meanDB!.toStringAsFixed(2)} dB'
-                : 'Awaiting data',
-            style: TextStyle(fontWeight: FontWeight.w300, fontSize: 14),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                meanDB != null
+                    ? 'Average: ${meanDB!.toStringAsFixed(2)} dB'
+                    : 'Awaiting data',
+                style:
+                    const TextStyle(fontWeight: FontWeight.w300, fontSize: 14),
+              ),
+              const SizedBox(
+                width: 15,
+              ),
+              Text(
+                meanDB != null
+                    ? 'Average: ${meanDB!.toStringAsFixed(2)} dB'
+                    : 'Awaiting data',
+                style:
+                    const TextStyle(fontWeight: FontWeight.w300, fontSize: 14),
+              ),
+            ],
           ),
 
           // Chart according the noise meter

@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:syncfusion_flutter_gauges/gauges.dart';
+import 'package:jay_sound_meter/logic/dB_meter.dart';
 
 class HistoryMeter extends StatelessWidget {
   const HistoryMeter(
@@ -20,44 +20,7 @@ class HistoryMeter extends StatelessWidget {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          SfRadialGauge(
-            title: const GaugeTitle(
-                text: "dB Meter",
-                textStyle:
-                    TextStyle(fontSize: 25, fontWeight: FontWeight.bold)),
-            enableLoadingAnimation: true,
-            axes: [
-              RadialAxis(
-                minimum: 0,
-                maximum: 150,
-                pointers: [
-                  NeedlePointer(
-                    value: maxDB,
-                    enableAnimation: true,
-                  )
-                ],
-                ranges: [
-                  GaugeRange(startValue: 0, endValue: 50, color: Colors.green),
-                  GaugeRange(
-                      startValue: 50, endValue: 100, color: Colors.orange),
-                  GaugeRange(startValue: 100, endValue: 160, color: Colors.red),
-                ],
-                annotations: [
-                  GaugeAnnotation(
-                    widget: Text(
-                      '${maxDB.toStringAsFixed(2)} dB',
-                      style: const TextStyle(
-                        fontSize: 25.0,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    positionFactor: 0.5,
-                    angle: 90,
-                  )
-                ],
-              ),
-            ],
-          ),
+          dBMeter(maxDB: maxDB),
           Column(
             children: [
               Text("Area : $area", style: const TextStyle(fontSize: 13)),

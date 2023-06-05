@@ -1,19 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 import 'package:jay_sound_meter/boxes/boxes.dart';
 import 'package:jay_sound_meter/database/save_model.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:jay_sound_meter/screens/history_meter.dart';
 
 class SaveMain extends StatefulWidget {
-  final double dBNoise;
-  final String date, time, area;
-  const SaveMain(
-      {super.key,
-      required this.dBNoise,
-      required this.date,
-      required this.time,
-      required this.area});
+
+  double? dBNoise;
+  String? date, time, area;
+
+  SaveMain(double this.dBNoise, String this.date, this.time, this.area);
+
+  SaveMain.history({super.key});
 
   @override
   State<SaveMain> createState() =>
@@ -21,8 +19,8 @@ class SaveMain extends StatefulWidget {
 }
 
 class SaveMainState extends State<SaveMain> {
-  final double dBNoise;
-  final String date, time, area;
+  final double? dBNoise;
+  final String? date, time, area;
   SaveMainState(
       {required this.dBNoise,
       required this.date,
@@ -45,17 +43,21 @@ class SaveMainState extends State<SaveMain> {
           return ListView.builder(
             itemCount: box.length,
             itemBuilder: (context, index) {
+              int reversedIndex = data.length - 1 - index;
+
               return GestureDetector(
                 onTap: () {
                   Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => HistoryMeter(
-                                maxDB: data[index].noiseData,
-                                area: data[index].area.toString(),
-                                date: data[index].date.toString(),
-                                time: data[index].time.toString(),
-                              )));
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => HistoryMeter(
+                        maxDB: data[reversedIndex].noiseData,
+                        area: data[reversedIndex].area.toString(),
+                        date: data[reversedIndex].date.toString(),
+                        time: data[reversedIndex].time.toString(),
+                      ),
+                    ),
+                  );
                 },
                 child: Card(
                   child: Padding(
@@ -68,7 +70,7 @@ class SaveMainState extends State<SaveMain> {
                         Row(
                           children: [
                             Text(
-                              "Noise : ${data[index].noiseData.toStringAsFixed(2)} dB",
+                              "Noise : ${data[reversedIndex].noiseData.toStringAsFixed(2)} dB",
                               style: const TextStyle(
                                   fontSize: 20, fontWeight: FontWeight.w500),
                             ),
@@ -79,7 +81,7 @@ class SaveMainState extends State<SaveMain> {
                                 color: Colors.redAccent,
                               ),
                               onTap: () {
-                                delete(data[index]);
+                                delete(data[reversedIndex]);
                               },
                             ),
                             const SizedBox(
@@ -87,11 +89,11 @@ class SaveMainState extends State<SaveMain> {
                             ),
                           ],
                         ),
-                        Text("Area : ${data[index].area.toString()}",
+                        Text("Area : ${data[reversedIndex].area.toString()}",
                             style: const TextStyle(fontSize: 13)),
-                        Text("Date : ${data[index].date.toString()}",
+                        Text("Date : ${data[reversedIndex].date.toString()}",
                             style: const TextStyle(fontSize: 13)),
-                        Text("Time : ${data[index].time.toString()}",
+                        Text("Time : ${data[reversedIndex].time.toString()}",
                             style: const TextStyle(fontSize: 13)),
                       ],
                     ),

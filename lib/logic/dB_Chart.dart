@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
-// need to fix onResume() or onPause()
 // pending testing on different device
 
 class DBChart extends StatelessWidget {
@@ -19,7 +18,7 @@ class DBChart extends StatelessWidget {
       series: <LineSeries<ChartData, double>>[
         LineSeries<ChartData, double>(
           dataLabelSettings: const DataLabelSettings(
-            isVisible: true,
+            // isVisible: true,
           ),
           dataSource: chartData,
           xAxisName: 'Time',
