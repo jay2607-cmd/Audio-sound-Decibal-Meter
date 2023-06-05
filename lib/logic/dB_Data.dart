@@ -179,7 +179,7 @@ class NoiseAppState extends State<NoiseApp> {
                 context,
                 MaterialPageRoute(
                     builder: (context) => SaveMain(
-                        noiseData: maxDB,
+                        dBNoise: maxDB,
                         date: date,
                         time: time,
                         area: selectedValue.toString())),
