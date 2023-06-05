@@ -38,7 +38,7 @@ class NoiseApp extends StatefulWidget {
   NoiseAppState createState() => NoiseAppState();
 }
 
-class NoiseAppState extends State<NoiseApp> {
+class NoiseAppState extends State<NoiseApp> with WidgetsBindingObserver {
   DateTime currentDate = DateTime.now();
   DateTime currentTime = DateTime.now();
 
@@ -82,6 +82,22 @@ class NoiseAppState extends State<NoiseApp> {
     super.initState();
     noiseMeter = NoiseMeter(onError);
     start();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed ||
+        state == AppLifecycleState.paused ) {
+      chartData.clear();
+    }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    stop();
   }
 
   //method for taking noise data

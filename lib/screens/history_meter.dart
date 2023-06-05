@@ -16,7 +16,7 @@ class HistoryMeter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("History"), centerTitle: true),
+      appBar: AppBar(title: const Text("History"), centerTitle: true),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -46,7 +46,7 @@ class HistoryMeter extends StatelessWidget {
                   GaugeAnnotation(
                     widget: Text(
                       '${maxDB.toStringAsFixed(2)} dB',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 25.0,
                         fontWeight: FontWeight.bold,
                       ),

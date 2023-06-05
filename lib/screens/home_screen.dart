@@ -36,13 +36,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
 
-                // Center(
-                //   child: Expanded(
-
-                //     child: Radial(),
-                //   ),
-                // ),
-
                 Expanded(
                   child: NoiseApp(),
                 ),

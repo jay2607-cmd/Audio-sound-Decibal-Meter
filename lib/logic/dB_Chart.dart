@@ -3,6 +3,7 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 
 // need to fix onResume() or onPause()
 // pending testing on different device
+
 class DBChart extends StatelessWidget {
   const DBChart({
     super.key,
