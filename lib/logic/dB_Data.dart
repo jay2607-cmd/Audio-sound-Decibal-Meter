@@ -8,6 +8,7 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 import '../screens/save_main.dart';
 import 'dB_Chart.dart';
 import 'dB_meter.dart';
+import 'dart:math';
 
 class NoiseApp extends StatefulWidget {
   const NoiseApp({super.key});
@@ -19,6 +20,8 @@ class NoiseApp extends StatefulWidget {
 class NoiseAppState extends State<NoiseApp> with WidgetsBindingObserver {
   DateTime currentDate = DateTime.now();
   DateTime currentTime = DateTime.now();
+
+  DBValueCount dbValueCount = DBValueCount();
 
   NoiseAppState() {
     selectedValue = areaTypeList[0];
@@ -144,15 +147,18 @@ class NoiseAppState extends State<NoiseApp> with WidgetsBindingObserver {
       floatingActionButton: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          FloatingActionButton.extended(
-            label: Text(isRecording ? 'Stop' : 'Start'),
-            onPressed: isRecording ? stop : start,
-            icon: !isRecording
-                ? const Icon(Icons.not_started_sharp)
-                : const Icon(Icons.stop_circle_sharp),
-            backgroundColor: isRecording ? Colors.red : Colors.green,
+          GestureDetector(
+            onDoubleTap: () {},
+            child: FloatingActionButton.extended(
+              label: Text(isRecording ? 'Stop' : 'Start'),
+              onPressed: isRecording ? stop : start,
+              icon: !isRecording
+                  ? const Icon(Icons.not_started_sharp)
+                  : const Icon(Icons.stop_circle_sharp),
+              backgroundColor: isRecording ? Colors.red : Colors.green,
+            ),
           ),
-          SizedBox(
+          const SizedBox(
             width: 15,
           ),
           FloatingActionButton.extended(
@@ -206,9 +212,7 @@ class NoiseAppState extends State<NoiseApp> with WidgetsBindingObserver {
                 width: 15,
               ),
               Text(
-                meanDB != null
-                    ? 'Average: ${meanDB!.toStringAsFixed(2)} dB'
-                    : 'Awaiting data',
+                "${dbValueCount.maximum()}",
                 style:
                     const TextStyle(fontWeight: FontWeight.w300, fontSize: 14),
               ),
@@ -256,5 +260,52 @@ class NoiseAppState extends State<NoiseApp> with WidgetsBindingObserver {
         border: UnderlineInputBorder(),
       ),
     );
+  }
+}
+
+class DBValueCount {
+  static double average = 0.0;
+  static double dbCount = 40.0;
+  static int increment = 0;
+  static double lastDbCount = 40.0;
+  static double maxDB = 0.0;
+  static double minDB = 100.0;
+  double volume = 10000.0;
+  late int i;
+
+  static get math => null;
+
+  static void setDbCount(double f) {
+    lastDbCount = dbCount;
+    dbCount = f;
+    int i = increment;
+    if (i > 0) {
+      average = ((average * (i - 1)) + f) / i.toDouble();
+      if (minDB > f) {
+        minDB = f;
+      }
+      if (maxDB < f) {
+        maxDB = f;
+      }
+    }
+    increment = i + 1;
+  }
+
+  double? maximum() {
+    double log10(num x) => log(x) / ln10;
+    if ((log10(volume) * 20.0) < 40.0) {
+      i = 15;
+    } else if ((log10(volume) * 20.0) < 50.0) {
+      i = 14;
+    } else {
+      i = (log10(volume) * 20.0) < 60.0 ? 10 : 9;
+    }
+    double? log1 = (log10(volume) * 20.0) - i;
+    // int i2 = log10.toInt();
+
+    DBValueCount.setDbCount(log1);
+    // df2.format()
+    return DBValueCount.maxDB;
+    //
   }
 }
