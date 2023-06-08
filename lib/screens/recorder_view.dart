@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:jay_sound_meter/screens/noise_detector.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_audio_recorder2/flutter_audio_recorder2.dart';
 
@@ -11,6 +12,7 @@ class RecorderView extends StatefulWidget {
   _RecorderViewState createState() => _RecorderViewState();
 }
 
+// different states of recordings
 enum RecordingState {
   UnSet,
   Set,
@@ -21,22 +23,26 @@ enum RecordingState {
 class _RecorderViewState extends State<RecorderView> {
   IconData _recordIcon = Icons.mic_none;
   String _recordText = 'Click To Start';
+
+  // RecordingState - Inbulid variable for handling recording's state
   RecordingState _recordingState = RecordingState.UnSet;
 
-  // Recorder properties
+  //  Recorder properties
   late FlutterAudioRecorder2 audioRecorder;
 
   @override
   void initState() {
     super.initState();
 
-    FlutterAudioRecorder2.hasPermissions.then((hasPermision) {
-      if (hasPermision!) {
-        _recordingState = RecordingState.Set;
-        _recordIcon = Icons.mic;
-        _recordText = 'Record';
-      }
-    });
+    FlutterAudioRecorder2.hasPermissions.then(
+      (hasPermision) {
+        if (hasPermision!) {
+          _recordingState = RecordingState.Set;
+          _recordIcon = Icons.mic;
+          _recordText = 'Record';
+        }
+      },
+    );
   }
 
   @override
@@ -50,22 +56,51 @@ class _RecorderViewState extends State<RecorderView> {
     return Stack(
       alignment: Alignment.center,
       children: [
-        MaterialButton(
-          onPressed: () async {
-            await _onRecordButtonPressed();
-            setState(() {});
-          },
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(50),
-          ),
-          child: Container(
-            width: 150,
-            height: 150,
-            child: Icon(
-              _recordIcon,
-              size: 50,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            MaterialButton(
+              color: Colors.blue.shade100,
+              onPressed: () async {
+                await _onRecordButtonPressed();
+                setState(() {});
+              },
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(50),
+              ),
+              child: Container(
+                width: 70,
+                height: 70,
+                child: Icon(
+                  _recordIcon,
+                  size: 50,
+                ),
+              ),
             ),
-          ),
+            SizedBox(
+              width: 20,
+            ),
+            MaterialButton(
+              color: Colors.red.shade200,
+              onPressed: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const NoiseDetector()));
+              },
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(50),
+              ),
+              child: Container(
+                width: 70,
+                height: 70,
+                child: Icon(
+                  Icons.directions,
+                  size: 50,
+                ),
+              ),
+            ),
+          ],
         ),
         Align(
             alignment: Alignment.bottomCenter,
@@ -86,8 +121,8 @@ class _RecorderViewState extends State<RecorderView> {
       case RecordingState.Recording:
         await _stopRecording();
         _recordingState = RecordingState.Stopped;
-        _recordIcon = Icons.fiber_manual_record;
-        _recordText = 'Record new one';
+        _recordIcon = Icons.mic_none_sharp;
+        _recordText = 'Record a new one';
         break;
 
       case RecordingState.Stopped:
@@ -96,8 +131,7 @@ class _RecorderViewState extends State<RecorderView> {
 
       case RecordingState.UnSet:
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
-
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('Please allow recording from settings.'),
         ));
         break;
@@ -110,9 +144,10 @@ class _RecorderViewState extends State<RecorderView> {
         '/' +
         DateTime.now().millisecondsSinceEpoch.toString() +
         '.aac';
-
+    print(filePath);
     audioRecorder =
         FlutterAudioRecorder2(filePath, audioFormat: AudioFormat.AAC);
+
     await audioRecorder.initialized;
   }
 
@@ -129,6 +164,8 @@ class _RecorderViewState extends State<RecorderView> {
 
   Future<void> _recordVoice() async {
     final hasPermission = await FlutterAudioRecorder2.hasPermissions;
+
+    /// if hasPermission is not null then returns hasPermission , otherwise returns null
     if (hasPermission ?? false) {
       await _initRecorder();
 
@@ -138,9 +175,13 @@ class _RecorderViewState extends State<RecorderView> {
       _recordText = 'Recording';
     } else {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Please allow recording from settings.'),
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please allow recording from settings.'),
+        ),
+      );
     }
   }
 }
+
+

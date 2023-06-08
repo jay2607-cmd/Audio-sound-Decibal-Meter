@@ -23,7 +23,6 @@ void main() async {
   await Hive.openBox<SaveModel>("savedB");
 
 
-
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitDown,
     DeviceOrientation.portraitUp,

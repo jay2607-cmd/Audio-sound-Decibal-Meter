@@ -44,6 +44,7 @@ class _RecorderHomeViewState extends State<RecorderHomeView> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget._title),
+        centerTitle: true,
       ),
       body: Column(
         children: [
