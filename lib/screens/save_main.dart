@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:jay_sound_meter/boxes/boxes.dart';
 import 'package:jay_sound_meter/database/save_model.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:jay_sound_meter/screens/history_meter.dart';
+import 'package:jay_sound_meter/screens/views/history_meter.dart';
 
 class SaveMain extends StatefulWidget {
 

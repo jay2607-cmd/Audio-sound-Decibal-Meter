@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'noise_detector.dart';
+import '../noise_detector.dart';
 
 class ReusableGridView extends StatelessWidget {
   const ReusableGridView({

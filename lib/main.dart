@@ -1,11 +1,18 @@
+import 'dart:io';
+
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
 import 'package:jay_sound_meter/database/save_model.dart';
+import 'package:jay_sound_meter/screens/camera.dart';
 import 'package:jay_sound_meter/screens/home_screen.dart';
 import 'package:jay_sound_meter/screens/settings.dart';
 import 'package:jay_sound_meter/screens/noise_detector.dart';
 import 'package:path_provider/path_provider.dart';
+
+
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,6 +22,8 @@ void main() async {
   Hive.registerAdapter(SaveModelAdapter());
 
   await Hive.openBox<SaveModel>("savedB");
+
+
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitDown,
