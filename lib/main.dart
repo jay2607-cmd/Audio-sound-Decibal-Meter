@@ -8,7 +8,6 @@ import 'package:jay_sound_meter/database/save_model.dart';
 import 'package:jay_sound_meter/screens/camera.dart';
 import 'package:jay_sound_meter/screens/home_screen.dart';
 import 'package:jay_sound_meter/screens/settings.dart';
-import 'package:jay_sound_meter/screens/noise_detector.dart';
 import 'package:path_provider/path_provider.dart';
 
 
