@@ -21,7 +21,7 @@ enum RecordingState {
 }
 
 class _RecorderViewState extends State<RecorderView> {
-  IconData _recordIcon = Icons.mic_none;
+  IconData _recordIcon = Icons.mic;
   String _recordText = 'Click To Start';
 
   // RecordingState - Inbulid variable for handling recording's state
@@ -35,8 +35,8 @@ class _RecorderViewState extends State<RecorderView> {
     super.initState();
 
     FlutterAudioRecorder2.hasPermissions.then(
-      (hasPermision) {
-        if (hasPermision!) {
+      (hasPermission) {
+        if (hasPermission!) {
           _recordingState = RecordingState.Set;
           _recordIcon = Icons.mic;
           _recordText = 'Record';
@@ -59,44 +59,57 @@ class _RecorderViewState extends State<RecorderView> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            MaterialButton(
-              color: Colors.blue.shade100,
+            ElevatedButton(
               onPressed: () async {
                 await _onRecordButtonPressed();
                 setState(() {});
               },
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(50),
+              style: ButtonStyle(
+                shape: MaterialStateProperty.all(const CircleBorder()),
+                padding: MaterialStateProperty.all(const EdgeInsets.all(20)),
+                backgroundColor:
+                    MaterialStateProperty.all(Colors.blue), // <-- Button color
+                overlayColor:
+                    MaterialStateProperty.resolveWith<Color?>((states) {
+                  if (states.contains(MaterialState.pressed)) {
+                    return Colors.red; // <-- Splash color
+                  }
+                  return null;
+                }),
               ),
-              child: Container(
-                width: 70,
-                height: 70,
-                child: Icon(
-                  _recordIcon,
-                  size: 50,
-                ),
+              // shape: RoundedRectangleBorder(
+              //   borderRadius: BorderRadius.circular(50),
+              // ),
+              child: Icon(
+                _recordIcon,
+                size: 30,
               ),
             ),
-            SizedBox(
+            const SizedBox(
               width: 20,
             ),
-            MaterialButton(
-              color: Colors.red.shade200,
+            ElevatedButton(
               onPressed: () {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
                         builder: (context) => const NoiseDetector()));
               },
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(50),
+              style: ButtonStyle(
+                shape: MaterialStateProperty.all(const CircleBorder()),
+                padding: MaterialStateProperty.all(const EdgeInsets.all(20)),
+                backgroundColor:
+                    MaterialStateProperty.all(Colors.red), // <-- Button color
+                overlayColor:
+                    MaterialStateProperty.resolveWith<Color?>((states) {
+                  if (states.contains(MaterialState.pressed))
+                    return Colors.red; // <-- Splash color
+                }),
               ),
               child: Container(
-                width: 70,
-                height: 70,
                 child: Icon(
                   Icons.directions,
-                  size: 50,
+                  size: 30,
                 ),
               ),
             ),
@@ -121,7 +134,7 @@ class _RecorderViewState extends State<RecorderView> {
       case RecordingState.Recording:
         await _stopRecording();
         _recordingState = RecordingState.Stopped;
-        _recordIcon = Icons.mic_none_sharp;
+        _recordIcon = Icons.mic;
         _recordText = 'Record a new one';
         break;
 
@@ -172,7 +185,7 @@ class _RecorderViewState extends State<RecorderView> {
       await _startRecording();
       _recordingState = RecordingState.Recording;
       _recordIcon = Icons.stop;
-      _recordText = 'Recording';
+      _recordText = "Recording...";
     } else {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
@@ -183,5 +196,3 @@ class _RecorderViewState extends State<RecorderView> {
     }
   }
 }
-
-

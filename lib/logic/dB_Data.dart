@@ -195,7 +195,7 @@ class NoiseAppState extends State<NoiseApp> with WidgetsBindingObserver {
 
           Expanded(
               // Radial Gauge
-              child: dBMeter(maxDB: maxDB)),
+              child: dBMeter(maxDB)),
 
           // depicts Mean dB
           Row(

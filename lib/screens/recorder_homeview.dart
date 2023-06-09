@@ -16,7 +16,7 @@ class RecorderHomeView extends StatefulWidget {
 }
 
 class _RecorderHomeViewState extends State<RecorderHomeView> {
-  late Directory appDirectory;
+  Directory appDirectory = Directory("");
   List<String> records = [];
 
   @override
@@ -49,9 +49,10 @@ class _RecorderHomeViewState extends State<RecorderHomeView> {
       body: Column(
         children: [
           Expanded(
-            flex: 2,
+            flex: 4,
             child: RecordListView(
               records: records,
+              appDirectory: appDirectory,
             ),
           ),
           Expanded(

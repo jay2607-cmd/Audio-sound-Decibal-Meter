@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:jay_sound_meter/screens/camera.dart';
 import 'package:jay_sound_meter/screens/noise_detector.dart';
 import 'package:jay_sound_meter/screens/recorder_homeview.dart';
-import 'package:jay_sound_meter/screens/recorder_view.dart';
 import 'package:jay_sound_meter/screens/views/reusable_grid_view.dart';
 import 'package:jay_sound_meter/screens/save_main.dart';
 import 'package:jay_sound_meter/screens/settings.dart';

@@ -20,7 +20,7 @@ class HistoryMeter extends StatelessWidget {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          dBMeter(maxDB: maxDB),
+          dBMeter(maxDB),
           Column(
             children: [
               Text("Area : $area", style: const TextStyle(fontSize: 13)),
