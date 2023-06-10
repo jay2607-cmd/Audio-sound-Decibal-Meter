@@ -20,7 +20,7 @@ class _dBMeterState extends State<dBMeter> {
   Widget build(BuildContext context) {
     return SfRadialGauge(
       title: const GaugeTitle(text: "dB Meter"),
-      enableLoadingAnimation: true,
+      // enableLoadingAnimation: true,
       axes: [
         RadialAxis(
           minimum: 0,
