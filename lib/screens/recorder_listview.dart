@@ -97,13 +97,8 @@ class _RecordListViewState extends State<RecordListView>
     }
   }
 
-  Future<File> changeFileNameOnly(File file, String newFileName) {
-    var path = file.path;
-    var lastSeparator = path.lastIndexOf(Platform.pathSeparator);
-    var newPath = path.substring(0, lastSeparator + 1) + newFileName;
-    print("new path: ${newPath}");
-    return file.rename(newPath);
-  }
+  // for renaming
+
 
   @override
   Widget build(BuildContext context) {
@@ -174,147 +169,14 @@ class _RecordListViewState extends State<RecordListView>
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  IconButton(
-                                    icon: _selectedIndex == i
-                                        ? _isPlaying
-                                            ? const Icon(
-                                                Icons.pause,
-                                                size: 30,
-                                              )
-                                            : Icon(Icons.play_arrow, size: 30)
-                                        : Icon(Icons.play_arrow, size: 30),
-                                    onPressed: () {
-                                      if (_isPlaying) {
-                                        _onPause();
-                                      } else {
-                                        _onPlay(
-                                            filePath:
-                                                widget.records.elementAt(i),
-                                            index: i);
-                                      }
-                                    },
-                                  ),
-                                  IconButton(
-                                      onPressed: () {
-                                        _onStop();
-                                      },
-                                      icon: const Icon(
-                                        Icons.stop_circle_rounded,
-                                        size: 30,
-                                        color: Colors.red,
-                                      )),
-                                  IconButton(
-                                      onPressed: () {
-                                        showDialog(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return AlertDialog(
-                                              title: const Text('Warning!',
-                                                  style: TextStyle(
-                                                      color: Colors.red)),
-                                              content: const Text(
-                                                  'Are you really want to delete this file!'),
-                                              actions: [
-                                                TextButton(
-                                                  child: Text('Cancel'),
-                                                  onPressed: () {
-                                                    Navigator.pop(context);
-                                                  },
-                                                ),
-                                                TextButton(
-                                                  child: Text('OK'),
-                                                  onPressed: () {
-                                                    deleteFile(
-                                                        File(widget.records
-                                                            .elementAt(i)),
-                                                        i);
-                                                    Navigator.pop(context);
-                                                  },
-                                                ),
-                                              ],
-                                            );
-                                          },
-                                        );
-
-                                        setState(() {});
-                                      },
-                                      icon: Icon(
-                                        Icons.delete,
-                                        size: 30,
-                                        color: Colors.red.shade900,
-                                      )),
+                                  playPauseIcon(i),
+                                  resetIcon(),
+                                  deleteIcon(context, i),
                                   GestureDetector(
                                     onDoubleTap: () {},
-                                    child: FloatingActionButton.extended(
-                                      shape: const CircleBorder(),
-                                      elevation: 0,
-                                      backgroundColor: Colors.blue.shade50,
-                                      foregroundColor: Colors.blue.shade500,
-                                      label: const Text(''),
-                                      onPressed: isRecording ? stop : start,
-                                      icon: !isRecording
-                                          ? const Icon(
-                                              Icons.record_voice_over_sharp,
-                                              size: 30,
-                                            )
-                                          : const Icon(
-                                              Icons.stop,
-                                              size: 30,
-                                              color: Colors.red,
-                                            ),
-                                    ),
+                                    child: noiseMeasureFloatingIcon(),
                                   ),
-                                  IconButton(
-                                      onPressed: () {
-                                        showDialog(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return AlertDialog(
-                                              title: const Text('Rename!',
-                                                  style: TextStyle(
-                                                      color: Colors.blue)),
-                                              content: const Text(
-                                                  'Are you really want to rename this file!'),
-                                              actions: [
-                                                TextField(
-                                                  decoration: InputDecoration(
-                                                    border: OutlineInputBorder(
-                                                        borderSide: BorderSide(
-                                                            color: Colors.blue),
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(10)),
-                                                    hintText: 'Enter New Name',
-                                                    helperText:
-                                                        'Keep it meaningful',
-                                                    labelText: 'Rename',
-                                                    prefixIcon: const Icon(
-                                                      Icons
-                                                          .drive_file_rename_outline_rounded,
-                                                      color: Colors.blue,
-                                                    ),
-                                                  ),
-                                                  controller: renameController,
-                                                ),
-                                                TextButton(
-                                                  child: Text('Rename'),
-                                                  onPressed: () {
-                                                    changeFileNameOnly(file,
-                                                        "${renameController.text}.aac");
-
-                                                    Navigator.pop(context);
-                                                  },
-                                                ),
-                                              ],
-                                            );
-                                          },
-                                        );
-                                        setState(() {});
-                                      },
-                                      icon: const Icon(
-                                        Icons.drive_file_rename_outline_sharp,
-                                        size: 30,
-                                      )),
+                                  renameIcon(context, file),
                                 ],
                               ),
                               Container(
@@ -322,11 +184,16 @@ class _RecordListViewState extends State<RecordListView>
                                   borderRadius: BorderRadius.circular(20),
                                   color: Colors.white,
                                 ),
-                                child: _isPlaying
-                                    ? dBMeter(maxDB)
-                                    : const SizedBox(
+                                child: Column(
+                                  children: [
+                                    if (_isPlaying)
+                                      dBMeter(maxDB)
+                                    else
+                                      const SizedBox(
                                         height: 0,
                                       ),
+                                  ],
+                                ),
                               )
                             ],
                           ),
@@ -338,6 +205,144 @@ class _RecordListViewState extends State<RecordListView>
               ),
             ),
           );
+  }
+
+  IconButton renameIcon(BuildContext context, File file) {
+    return IconButton(
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title:
+                    const Text('Rename!', style: TextStyle(color: Colors.blue)),
+                content: const Text('Are you really want to rename this file!'),
+                actions: [
+                  TextField(
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.blue),
+                          borderRadius: BorderRadius.circular(10)),
+                      hintText: 'Enter New Name',
+                      helperText: 'Keep it meaningful',
+                      labelText: 'Rename',
+                      prefixIcon: const Icon(
+                        Icons.drive_file_rename_outline_rounded,
+                        color: Colors.blue,
+                      ),
+                    ),
+                    controller: renameController,
+                  ),
+                  TextButton(
+                    child: Text('Rename'),
+                    onPressed: () async {
+                      Navigator.pop(context);
+
+                      await changeFileNameOnly(
+                          file, "${renameController.text}.aac");
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+          setState(() {});
+        },
+        icon: const Icon(
+          Icons.drive_file_rename_outline_sharp,
+          size: 30,
+        ));
+  }
+
+  FloatingActionButton noiseMeasureFloatingIcon() {
+    return FloatingActionButton.extended(
+      shape: const CircleBorder(),
+      elevation: 0,
+      backgroundColor: Colors.blue.shade50,
+      foregroundColor: Colors.blue.shade500,
+      label: const Text(''),
+      onPressed: isRecording ? stop : start,
+      icon: !isRecording
+          ? const Icon(
+              Icons.record_voice_over_sharp,
+              size: 30,
+            )
+          : const Icon(
+              Icons.stop,
+              size: 30,
+              color: Colors.red,
+            ),
+    );
+  }
+
+  IconButton deleteIcon(BuildContext context, int i) {
+    return IconButton(
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title:
+                    const Text('Warning!', style: TextStyle(color: Colors.red)),
+                content: const Text('Are you really want to delete this file!'),
+                actions: [
+                  TextButton(
+                    child: Text('Cancel'),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+                  TextButton(
+                    child: Text('OK'),
+                    onPressed: () {
+                      deleteFile(File(widget.records.elementAt(i)), i);
+                      Navigator.pop(context);
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+
+          setState(() {});
+        },
+        icon: Icon(
+          Icons.delete,
+          size: 30,
+          color: Colors.red.shade900,
+        ));
+  }
+
+  IconButton resetIcon() {
+    return IconButton(
+        onPressed: () {
+          _onStop();
+        },
+        icon: const Icon(
+          Icons.stop_circle_rounded,
+          size: 30,
+          color: Colors.red,
+        ));
+  }
+
+  IconButton playPauseIcon(int i) {
+    return IconButton(
+      icon: _selectedIndex == i
+          ? _isPlaying
+              ? const Icon(
+                  Icons.pause,
+                  size: 30,
+                )
+              : Icon(Icons.play_arrow, size: 30)
+          : Icon(Icons.play_arrow, size: 30),
+      onPressed: () {
+        if (_isPlaying) {
+          _onPause();
+        } else {
+          _onPlay(filePath: widget.records.elementAt(i), index: i);
+        }
+      },
+    );
   }
 
   Future<void> deleteFile(File file, int index) async {
@@ -435,4 +440,13 @@ class _RecordListViewState extends State<RecordListView>
 
     return ('$hour:$minute:$second');
   }
+
+  Future<File> changeFileNameOnly(File file, String newFileName) {
+    var path = file.path;
+    var lastSeparator = path.lastIndexOf(Platform.pathSeparator);
+    var newPath = path.substring(0, lastSeparator + 1) + newFileName;
+    print("new path: ${newPath}");
+    return file.rename(newPath);
+  }
+
 }

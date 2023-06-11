@@ -5,7 +5,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:jay_sound_meter/screens/views/history_meter.dart';
 
 class SaveMain extends StatefulWidget {
-
   double? dBNoise;
   String? date, time, area;
 
@@ -81,7 +80,35 @@ class SaveMainState extends State<SaveMain> {
                                 color: Colors.redAccent,
                               ),
                               onTap: () {
-                                delete(data[reversedIndex]);
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: const Text('Warning!',
+                                          style: TextStyle(color: Colors.red)),
+                                      content: const Text(
+                                          'Are you really want to delete this Noise!'),
+                                      actions: [
+                                        TextButton(
+                                          child: Text('Cancel'),
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                          },
+                                        ),
+                                        TextButton(
+                                          child: Text('OK'),
+                                          onPressed: () {
+                                            delete(data[reversedIndex]);
+
+                                            Navigator.pop(context);
+                                          },
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+
+                                setState(() {});
                               },
                             ),
                             const SizedBox(
