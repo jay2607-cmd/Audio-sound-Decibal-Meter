@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:jay_sound_meter/screens/camera.dart';
+import 'package:jay_sound_meter/screens/camera_home.dart';
+import 'package:jay_sound_meter/screens/uploade_video_noise_measure.dart';
 import 'package:jay_sound_meter/screens/noise_detector.dart';
 import 'package:jay_sound_meter/screens/recorder_homeview.dart';
 import 'package:jay_sound_meter/screens/views/reusable_grid_view.dart';
@@ -39,15 +40,17 @@ class HomeScreen extends StatelessWidget {
               getColor: Colors.blue.shade300,
               icon: Icons.settings_sharp),
           ReusableGridView(
-              className: RecorderHomeView(title: 'Recorder',),
+              className: RecorderHomeView(
+                title: 'Recorder',
+              ),
               label: "RECORDER",
               getColor: Colors.blue.shade400,
               icon: Icons.record_voice_over_sharp),
           ReusableGridView(
-              className: CameraMain(),
-              label: "CAPTURE VIDEO",
+              className: CameraHome(),
+              label: "CAMERA",
               getColor: Colors.blue.shade500,
-              icon: Icons.camera_alt),
+              icon: Icons.camera_enhance_sharp),
           // ReusableGridView(
           //     className: NoiseDetector(),
           //     label: "NOISE DETECTOR",

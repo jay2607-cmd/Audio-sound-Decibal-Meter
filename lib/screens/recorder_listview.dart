@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:jay_sound_meter/logic/dB_meter.dart';
 import 'dart:async';
 import 'package:flutter/foundation.dart';
@@ -25,6 +26,8 @@ class _RecordListViewState extends State<RecordListView>
     with WidgetsBindingObserver {
   _RecordListViewState({required this.records, required this.appDirectory});
 
+  AudioPlayer audioPlayer = AudioPlayer();
+
   TextEditingController renameController = TextEditingController();
 
   bool isRenamePressed = false;
@@ -35,8 +38,6 @@ class _RecordListViewState extends State<RecordListView>
   late NoiseMeter noiseMeter;
   double maxDB = 0;
   double? meanDB;
-
-  final stat = FileStat.statSync("test.dart");
 
   final Directory appDirectory;
 
@@ -56,14 +57,14 @@ class _RecordListViewState extends State<RecordListView>
   @override
   void dispose() {
     super.dispose();
-    stop();
+    noiseStop();
   }
 
   //method for taking noise data
   void onData(NoiseReading noiseReading) {
-    setState(() {
-      if (!isRecording) isRecording = true;
-    });
+    // setState(() {
+    //   if (!isRecording) isRecording = true;
+    // });
     maxDB = noiseReading.maxDecibel;
     meanDB = noiseReading.meanDecibel;
   }
@@ -76,7 +77,7 @@ class _RecordListViewState extends State<RecordListView>
     isRecording = false;
   }
 
-  void start() async {
+  void noiseStart() async {
     try {
       noiseSubscription = noiseMeter.noiseStream.listen(onData);
     } catch (e) {
@@ -84,12 +85,12 @@ class _RecordListViewState extends State<RecordListView>
     }
   }
 
-  void stop() async {
+  void noiseStop() async {
     try {
       noiseSubscription!.cancel();
       noiseSubscription = null;
 
-      setState(() => isRecording = false);
+      // setState(() => isRecording = false);
     } catch (e) {
       if (kDebugMode) {
         print('stopRecorder error: $e');
@@ -97,114 +98,35 @@ class _RecordListViewState extends State<RecordListView>
     }
   }
 
-  // for renaming
+  FutureBuilder<DateTime> dateAndTime(int i) {
+    return FutureBuilder<DateTime>(
+      future: getFileLastModified(widget.records.elementAt(i)),
+      builder: (BuildContext context, AsyncSnapshot<DateTime> snapshot) {
+        if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        } else if (snapshot.hasData) {
+          DateTime lastModified = snapshot.data!;
 
+          String time = DateFormat.jm().format(lastModified); // Format the time
+          String date =
+              DateFormat.yMMMd().format(lastModified); // Format the date
 
-  @override
-  Widget build(BuildContext context) {
-    return widget.records.isEmpty
-        ? const Center(
-            child: Text(
-              'No records yet',
-              style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
-            ),
-          )
-        : Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Container(
-              color: Colors.blue.shade50,
-              child: ListView.builder(
-                itemCount: widget.records.length,
-                shrinkWrap: true,
-                reverse: false,
-                itemBuilder: (BuildContext context, int i) {
-                  File file = new File(widget.records.elementAt(i));
-                  String fileName = file.path.split('/').last;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Text('Date: $date', style: TextStyle(fontSize: 16)),
 
-                  // print("File Name:${renameController}");
-                  return Padding(
-                    padding: EdgeInsets.symmetric(vertical: 10),
-                    child: ExpansionTile(
-                      // this new index is for getting new recording first
-                      // title: Text('New recoding ${widget.records.length - i}'),
-                      title: Text(fileName),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Accessed: ${stat.modified}'),
-                          // // SizedBox(height: 5),
-                          // Text(
-                          //     "Time : ${_getTimeFromFilePath(filePath: widget.records.elementAt(i))} "),
-                        ],
-                      ),
-
-                      onExpansionChanged: ((newState) {
-                        if (newState) {
-                          setState(
-                            () {
-                              _selectedIndex = i;
-                            },
-                          );
-                        }
-                      }),
-                      children: [
-                        // dropDown container
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              LinearProgressIndicator(
-                                minHeight: 5,
-                                backgroundColor: Colors.black,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.green.shade500),
-                                value: _selectedIndex == i
-                                    ? _completedPercentage
-                                    : 0,
-                              ),
-                              const SizedBox(
-                                height: 15,
-                              ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  playPauseIcon(i),
-                                  resetIcon(),
-                                  deleteIcon(context, i),
-                                  GestureDetector(
-                                    onDoubleTap: () {},
-                                    child: noiseMeasureFloatingIcon(),
-                                  ),
-                                  renameIcon(context, file),
-                                ],
-                              ),
-                              Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(20),
-                                  color: Colors.white,
-                                ),
-                                child: Column(
-                                  children: [
-                                    if (_isPlaying)
-                                      dBMeter(maxDB)
-                                    else
-                                      const SizedBox(
-                                        height: 0,
-                                      ),
-                                  ],
-                                ),
-                              )
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
+              // SizedBox(height: 16),
+              Text('Time: $time', style: TextStyle(fontSize: 16)),
+              // Text(time, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            ],
           );
+        } else {
+          return Text('File does not exist.');
+        }
+      },
+    );
   }
 
   IconButton renameIcon(BuildContext context, File file) {
@@ -255,13 +177,25 @@ class _RecordListViewState extends State<RecordListView>
   }
 
   FloatingActionButton noiseMeasureFloatingIcon() {
+    // print("isRecording: ${isRecording}");
     return FloatingActionButton.extended(
       shape: const CircleBorder(),
       elevation: 0,
       backgroundColor: Colors.blue.shade50,
       foregroundColor: Colors.blue.shade500,
       label: const Text(''),
-      onPressed: isRecording ? stop : start,
+      // onPressed: isRecording ? noiseStop : noiseStart,
+      onPressed: () {
+        if (isRecording) {
+          isRecording = false;
+
+          noiseStop();
+        } else {
+          isRecording = true;
+          noiseStart();
+        }
+      },
+
       icon: !isRecording
           ? const Icon(
               Icons.record_voice_over_sharp,
@@ -362,8 +296,6 @@ class _RecordListViewState extends State<RecordListView>
     setState(() {});
   }
 
-  AudioPlayer audioPlayer = AudioPlayer();
-
   Future<void> _onPlay({required String filePath, required int index}) async {
     if (!_isPlaying) {
       audioPlayer.play(filePath, isLocal: true);
@@ -376,6 +308,7 @@ class _RecordListViewState extends State<RecordListView>
       audioPlayer.onPlayerCompletion.listen((_) {
         setState(() {
           _isPlaying = false;
+          isRecording = false;
           _completedPercentage = 0.0;
         });
       });
@@ -400,53 +333,178 @@ class _RecordListViewState extends State<RecordListView>
     audioPlayer.stop();
     setState(() {
       _isPlaying = false;
+      isRecording = false;
+      noiseStop();
       _completedPercentage = 0.0;
     });
+    noiseStop;
   }
 
   Future<void> _onPause() async {
     audioPlayer.pause();
     setState(() {
       _isPlaying = false;
+      isRecording = false;
+      noiseStop();
     });
   }
+  //
+  // Future<File> changeFileNameOnly(File file, String newFileName) async {
+  //   var path = file.path;
+  //
+  //   var lastSeparator = path.lastIndexOf(Platform.pathSeparator);
+  //   var newPath = path.substring(0, lastSeparator + 1) + newFileName;
+  //   print("new path: ${newPath}");
+  //   return await file.rename(newPath);
+  // }
 
-  String _getDateFromFilePath({required String filePath}) {
-    print("Path:${filePath}");
-    String fromEpoch = filePath.substring(
-        filePath.lastIndexOf('/') + 1, filePath.lastIndexOf('.'));
-
-    DateTime recordedDate =
-        DateTime.fromMillisecondsSinceEpoch(int.parse(fromEpoch));
-
-    int year = recordedDate.year;
-    int month = recordedDate.month;
-    int day = recordedDate.day;
-
-    return ('$day-$month-$year');
-  }
-
-  String _getTimeFromFilePath({required String filePath}) {
-    print("Path:${filePath}");
-    String fromEpoch = filePath.substring(
-        filePath.lastIndexOf('/') + 1, filePath.lastIndexOf('.'));
-
-    DateTime recordedDate =
-        DateTime.fromMillisecondsSinceEpoch(int.parse(fromEpoch));
-
-    int hour = recordedDate.hour;
-    int minute = recordedDate.minute;
-    int second = recordedDate.second;
-
-    return ('$hour:$minute:$second');
-  }
-
-  Future<File> changeFileNameOnly(File file, String newFileName) {
+  Future<File?> changeFileNameOnly(File file, String newFileName) async {
     var path = file.path;
     var lastSeparator = path.lastIndexOf(Platform.pathSeparator);
     var newPath = path.substring(0, lastSeparator + 1) + newFileName;
-    print("new path: ${newPath}");
-    return file.rename(newPath);
+
+    // Check if the new file name already exists
+    var newFile = File(newPath);
+    if (await newFile.exists()) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('File Name Already Exists'),
+            content: Text(
+                'The specified file name already exists. Please choose a different name.'),
+            actions: [
+              TextButton(
+                child: Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+      return null; // Return null to indicate failure
+    }
+
+    // Rename the file
+    await file.rename(newPath);
+    return newFile;
   }
 
+  Future<DateTime> getFileLastModified(String filepath) async {
+    File file = File(filepath);
+
+    if (await file.exists()) {
+      DateTime lastModified = await file.lastModified();
+      return lastModified;
+    } else {
+      throw Exception('File does not exist.');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.records.isEmpty
+        ? const Center(
+            child: Text(
+              'No records yet',
+              style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+            ),
+          )
+        : Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Container(
+              color: Colors.blue.shade50,
+              child: ListView.builder(
+                itemCount: widget.records.length,
+                shrinkWrap: true,
+                reverse: false,
+                itemBuilder: (BuildContext context, int i) {
+                  File file = new File(widget.records.elementAt(i));
+
+                  String fileName = file.path.split('/').last;
+
+                  // print("File Name:${renameController}");
+                  return Padding(
+                    padding: EdgeInsets.symmetric(vertical: 10),
+                    child: ExpansionTile(
+                      // this new index is for getting new recording first
+                      // title: Text('New recoding ${widget.records.length - i}'),
+                      title: Text(fileName),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          dateAndTime(i),
+                        ],
+                      ),
+
+                      onExpansionChanged: ((newState) {
+                        if (newState) {
+                          setState(
+                            () {
+                              _selectedIndex = i;
+                            },
+                          );
+                        }
+                      }),
+                      children: [
+                        // dropDown container
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              LinearProgressIndicator(
+                                minHeight: 5,
+                                backgroundColor: Colors.black,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.green.shade500),
+                                value: _selectedIndex == i
+                                    ? _completedPercentage
+                                    : 0,
+                              ),
+                              const SizedBox(
+                                height: 15,
+                              ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  playPauseIcon(i),
+                                  resetIcon(),
+                                  deleteIcon(context, i),
+                                  GestureDetector(
+                                    onDoubleTap: () {},
+                                    child: noiseMeasureFloatingIcon(),
+                                  ),
+                                  renameIcon(context, file),
+                                ],
+                              ),
+                              Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  color: Colors.white,
+                                ),
+                                child: Column(
+                                  children: [
+                                    if (_isPlaying)
+                                      dBMeter(maxDB)
+                                    else
+                                      const SizedBox(
+                                        height: 0,
+                                      ),
+                                  ],
+                                ),
+                              )
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          );
+  }
 }

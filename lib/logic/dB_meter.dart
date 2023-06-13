@@ -6,7 +6,7 @@ class dBMeter extends StatefulWidget {
   double maxDB = 12;
 
   dBMeter(
-     double this.maxDB,
+    double this.maxDB,
   );
 
   dBMeter.doNothing({super.key});
@@ -20,7 +20,7 @@ class _dBMeterState extends State<dBMeter> {
   Widget build(BuildContext context) {
     return SfRadialGauge(
       title: const GaugeTitle(text: "dB Meter"),
-      enableLoadingAnimation: true,
+      // enableLoadingAnimation: true,
       axes: [
         RadialAxis(
           minimum: 0,
