@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:jay_sound_meter/logic/dB_meter.dart';
 import 'package:noise_meter/noise_meter.dart';
 import 'package:video_player/video_player.dart';
@@ -15,29 +14,39 @@ enum DataSourceType {
   contentUri,
 }
 
-class UploadedVideoNoiseMeasure extends StatelessWidget {
-  const UploadedVideoNoiseMeasure({Key? key}) : super(key: key);
+class CameraVideoNoiseMeasure extends StatelessWidget {
+  final String cameraFilePath;
+  CameraVideoNoiseMeasure({required this.cameraFilePath});
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const MyHomePage(title: 'Camera Noise Measure'),
+      home: MyHomePage(
+          title: 'Camera Noise Measure', cameraFilePath: cameraFilePath),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
+  final String cameraFilePath;
+  const MyHomePage(
+      {Key? key, required this.title, required this.cameraFilePath})
+      : super(key: key);
 
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<MyHomePage> createState() =>
+      _MyHomePageState(cameraFilePath: cameraFilePath);
 }
 
 class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
+  final String cameraFilePath;
+
+  _MyHomePageState({required this.cameraFilePath});
+
   bool isRecording = false;
   StreamSubscription<NoiseReading>? noiseSubscription;
   late NoiseMeter noiseMeter;
@@ -103,7 +112,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
           SizedBox(
             height: 24,
           ),
-          SelectVideo(),
+          SelectVideo(cameraFilePath: cameraFilePath),
         ],
       ),
       floatingActionButtonLocation:
@@ -129,10 +138,12 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 }
 
 class VideoPlayerView extends StatefulWidget {
+  final String cameraFilePath;
   const VideoPlayerView({
     Key? key,
     required this.files,
     required this.dataSourceType,
+    required this.cameraFilePath,
   }) : super(key: key);
 
   final List<File> files;
@@ -140,13 +151,16 @@ class VideoPlayerView extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() {
-    return VideoPlayerViewState();
+    return VideoPlayerViewState(cameraFilePath: cameraFilePath);
   }
 }
 
 class VideoPlayerViewState extends State<VideoPlayerView> {
+  final String cameraFilePath;
   late List<VideoPlayerController> _videoPlayerControllers;
   late List<ChewieController> _chewieControllers;
+
+  VideoPlayerViewState({required this.cameraFilePath});
 
   @override
   void initState() {
@@ -208,35 +222,30 @@ class VideoPlayerViewState extends State<VideoPlayerView> {
 }
 
 class SelectVideo extends StatefulWidget {
+  final String cameraFilePath;
+  SelectVideo({required this.cameraFilePath});
   @override
   State<StatefulWidget> createState() {
-    return SelectVideoState();
+    return SelectVideoState(cameraFilePath: cameraFilePath);
   }
 }
 
 class SelectVideoState extends State<SelectVideo> {
+  final String cameraFilePath;
+  SelectVideoState({required this.cameraFilePath});
+
   List<File> _files = [];
 
   @override
   Widget build(BuildContext context) {
+    _files.add(File(cameraFilePath));
     return Column(
       children: [
-        TextButton(
-          onPressed: () async {
-            final file =
-                await ImagePicker().pickVideo(source: ImageSource.gallery);
-            if (file != null) {
-              setState(() {
-                _files.add(File(file.path));
-              });
-            }
-          },
-          child: const Text("Select Video"),
-        ),
         for (final file in _files)
           VideoPlayerView(
             files: [file],
             dataSourceType: DataSourceType.file,
+            cameraFilePath: cameraFilePath,
           ),
       ],
     );

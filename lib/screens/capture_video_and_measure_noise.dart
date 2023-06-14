@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'dart:io';
 
@@ -6,23 +5,22 @@ import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:jay_sound_meter/logic/dB_meter.dart';
+import 'package:jay_sound_meter/screens/camera_video_noise_measure.dart';
+import 'package:noise_meter/noise_meter.dart';
+import 'package:syncfusion_flutter_gauges/gauges.dart';
 import 'package:video_player/video_player.dart';
 
-
-
-
-
-
 class CameraExampleHome extends StatefulWidget {
-
   final List<CameraDescription> cameras;
   final Function logError;
 
-  const CameraExampleHome({super.key,required this.cameras, required this.logError});
+  const CameraExampleHome(
+      {super.key, required this.cameras, required this.logError});
 
   @override
   State<CameraExampleHome> createState() {
-    return _CameraExampleHomeState(cameras: cameras,logError: logError);
+    return _CameraExampleHomeState(cameras: cameras, logError: logError);
   }
 }
 
@@ -42,16 +40,16 @@ IconData getCameraLensIcon(CameraLensDirection direction) {
   return Icons.camera;
 }
 
-
 class _CameraExampleHomeState extends State<CameraExampleHome>
     with WidgetsBindingObserver, TickerProviderStateMixin {
-
+  //parameters come from main.dart
   final List<CameraDescription> cameras;
   final Function logError;
   _CameraExampleHomeState({required this.cameras, required this.logError});
 
+  // variables for camera controlling
   CameraController? controller;
-  XFile? imageFile;
+  // XFile? imageFile;
   XFile? videoFile;
   VideoPlayerController? videoController;
   VoidCallback? videoPlayerListener;
@@ -73,9 +71,19 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
   // Counting pointers (number of user fingers on screen)
   int _pointers = 0;
 
+  // Variables for noise Measure
+  bool isRecording = false;
+  StreamSubscription<NoiseReading>? noiseSubscription;
+  late NoiseMeter noiseMeter;
+  double maxDB = 0;
+  double? meanDB;
+
+
+
   @override
   void initState() {
     super.initState();
+    noiseMeter = NoiseMeter(onError);
     WidgetsBinding.instance.addObserver(this);
 
     _flashModeControlRowAnimationController = AnimationController(
@@ -106,16 +114,57 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
 
   @override
   void dispose() {
+    final CameraController? cameraController = controller;
+    cameraController?.dispose();
     WidgetsBinding.instance.removeObserver(this);
     _flashModeControlRowAnimationController.dispose();
     _exposureModeControlRowAnimationController.dispose();
+    noiseStop();
     super.dispose();
   }
+
+  void onData(NoiseReading noiseReading) {
+    // setState(() {
+    //   if (!isRecording) isRecording = true;
+    // });
+    maxDB = noiseReading.maxDecibel;
+    meanDB = noiseReading.meanDecibel;
+  }
+
+  void onError(Object e) {
+    if (kDebugMode) {
+      print(e.toString());
+    }
+    isRecording = false;
+  }
+
+  void noiseStart() async {
+    try {
+      noiseSubscription = noiseMeter.noiseStream.listen(onData);
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  void noiseStop() async {
+    try {
+      noiseSubscription!.cancel();
+      noiseSubscription = null;
+
+      // setState(() => isRecording = false);
+    } catch (e) {
+      if (kDebugMode) {
+        print('stopRecorder error: $e');
+      }
+    }
+  }
+
 
   // #docregion AppLifecycle
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     final CameraController? cameraController = controller;
+    cameraController?.dispose();
 
     // App state changed before we got the chance to initialize.
     if (cameraController == null || !cameraController.value.isInitialized) {
@@ -134,7 +183,8 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Camera example'),
+        title: const Text('Camera'),
+        centerTitle: true,
       ),
       body: Column(
         children: <Widget>[
@@ -144,9 +194,9 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
                 color: Colors.black,
                 border: Border.all(
                   color:
-                  controller != null && controller!.value.isRecordingVideo
-                      ? Colors.redAccent
-                      : Colors.grey,
+                      controller != null && controller!.value.isRecordingVideo
+                          ? Colors.redAccent
+                          : Colors.grey,
                   width: 3.0,
                 ),
               ),
@@ -159,18 +209,43 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
             ),
           ),
           _captureControlRowWidget(),
-          _modeControlRowWidget(),
+          // _modeControlRowWidget(),
           Padding(
             padding: const EdgeInsets.all(5.0),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
                 _cameraTogglesRowWidget(),
-                _thumbnailWidget(),
+                ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  CameraVideoNoiseMeasure(cameraFilePath: videoFile!.path,)));
+                    },
+                    child: Text("MEASURE NOISE")),
+                // _thumbnailWidget(),
               ],
             ),
+
           ),
+          dBMeter(maxDB),
+          GestureDetector(
+            onDoubleTap: () {},
+            child: FloatingActionButton.extended(
+              label: Text(isRecording ? 'Stop' : 'Start'),
+              onPressed: isRecording ? noiseStop : noiseStart,
+              icon: !isRecording
+                  ? const Icon(Icons.not_started_sharp)
+                  : const Icon(Icons.stop_circle_sharp),
+              backgroundColor: isRecording ? Colors.red : Colors.green,
+            ),
+          ),
+
         ],
       ),
+
     );
   }
 
@@ -195,14 +270,14 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
           controller!,
           child: LayoutBuilder(
               builder: (BuildContext context, BoxConstraints constraints) {
-                return GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onScaleStart: _handleScaleStart,
-                  onScaleUpdate: _handleScaleUpdate,
-                  onTapDown: (TapDownDetails details) =>
-                      onViewFinderTap(details, constraints),
-                );
-              }),
+            return GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onScaleStart: _handleScaleStart,
+              onScaleUpdate: _handleScaleUpdate,
+              onTapDown: (TapDownDetails details) =>
+                  onViewFinderTap(details, constraints),
+            );
+          }),
         ),
       );
     }
@@ -225,293 +300,293 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
   }
 
   /// Display the thumbnail of the captured image or video.
-  Widget _thumbnailWidget() {
-    final VideoPlayerController? localVideoController = videoController;
-
-    return Expanded(
-      child: Align(
-        alignment: Alignment.centerRight,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            if (localVideoController == null && imageFile == null)
-              Container()
-            else
-              SizedBox(
-                width: 64.0,
-                height: 64.0,
-                child: (localVideoController == null)
-                    ? (
-                    // The captured image on the web contains a network-accessible URL
-                    // pointing to a location within the browser. It may be displayed
-                    // either with Image.network or Image.memory after loading the image
-                    // bytes to memory.
-                    kIsWeb
-                        ? Image.network(imageFile!.path)
-                        : Image.file(File(imageFile!.path)))
-                    : Container(
-                  decoration: BoxDecoration(
-                      border: Border.all(color: Colors.pink)),
-                  child: Center(
-                    child: AspectRatio(
-                        aspectRatio:
-                        localVideoController.value.aspectRatio,
-                        child: VideoPlayer(localVideoController)),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
+  // Widget _thumbnailWidget() {
+  //   final VideoPlayerController? localVideoController = videoController;
+  //
+  //   return Expanded(
+  //     child: Align(
+  //       alignment: Alignment.centerRight,
+  //       child: Row(
+  //         mainAxisSize: MainAxisSize.min,
+  //         children: <Widget>[
+  //           if (localVideoController == null && imageFile == null)
+  //             Container()
+  //           else
+  //             SizedBox(
+  //               width: 64.0,
+  //               height: 64.0,
+  //               child: (localVideoController == null)
+  //                   ? (
+  //                       // The captured image on the web contains a network-accessible URL
+  //                       // pointing to a location within the browser. It may be displayed
+  //                       // either with Image.network or Image.memory after loading the image
+  //                       // bytes to memory.
+  //                       kIsWeb
+  //                           ? Image.network(imageFile!.path)
+  //                           : Image.file(File(imageFile!.path)))
+  //                   : Container(
+  //                       decoration: BoxDecoration(
+  //                           border: Border.all(color: Colors.pink)),
+  //                       child: Center(
+  //                         child: AspectRatio(
+  //                             aspectRatio:
+  //                                 localVideoController.value.aspectRatio,
+  //                             child: VideoPlayer(localVideoController)),
+  //                       ),
+  //                     ),
+  //             ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   /// Display a bar with buttons to change the flash and exposure modes
-  Widget _modeControlRowWidget() {
-    return Column(
-      children: <Widget>[
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: <Widget>[
-            IconButton(
-              icon: const Icon(Icons.flash_on),
-              color: Colors.blue,
-              onPressed: controller != null ? onFlashModeButtonPressed : null,
-            ),
-            // The exposure and focus mode are currently not supported on the web.
-            ...!kIsWeb
-                ? <Widget>[
-              IconButton(
-                icon: const Icon(Icons.exposure),
-                color: Colors.blue,
-                onPressed: controller != null
-                    ? onExposureModeButtonPressed
-                    : null,
-              ),
-              IconButton(
-                icon: const Icon(Icons.filter_center_focus),
-                color: Colors.blue,
-                onPressed:
-                controller != null ? onFocusModeButtonPressed : null,
-              )
-            ]
-                : <Widget>[],
-            IconButton(
-              icon: Icon(enableAudio ? Icons.volume_up : Icons.volume_mute),
-              color: Colors.blue,
-              onPressed: controller != null ? onAudioModeButtonPressed : null,
-            ),
-            IconButton(
-              icon: Icon(controller?.value.isCaptureOrientationLocked ?? false
-                  ? Icons.screen_lock_rotation
-                  : Icons.screen_rotation),
-              color: Colors.blue,
-              onPressed: controller != null
-                  ? onCaptureOrientationLockButtonPressed
-                  : null,
-            ),
-          ],
-        ),
-        _flashModeControlRowWidget(),
-        _exposureModeControlRowWidget(),
-        _focusModeControlRowWidget(),
-      ],
-    );
-  }
+  // Widget _modeControlRowWidget() {
+  //   return Column(
+  //     children: <Widget>[
+  //       Row(
+  //         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  //         children: <Widget>[
+  //           IconButton(
+  //             icon: const Icon(Icons.flash_on),
+  //             color: Colors.blue,
+  //             onPressed: controller != null ? onFlashModeButtonPressed : null,
+  //           ),
+  //           // The exposure and focus mode are currently not supported on the web.
+  //           ...!kIsWeb
+  //               ? <Widget>[
+  //                   IconButton(
+  //                     icon: const Icon(Icons.exposure),
+  //                     color: Colors.blue,
+  //                     onPressed: controller != null
+  //                         ? onExposureModeButtonPressed
+  //                         : null,
+  //                   ),
+  //                   IconButton(
+  //                     icon: const Icon(Icons.filter_center_focus),
+  //                     color: Colors.blue,
+  //                     onPressed:
+  //                         controller != null ? onFocusModeButtonPressed : null,
+  //                   )
+  //                 ]
+  //               : <Widget>[],
+  //           IconButton(
+  //             icon: Icon(enableAudio ? Icons.volume_up : Icons.volume_mute),
+  //             color: Colors.blue,
+  //             onPressed: controller != null ? onAudioModeButtonPressed : null,
+  //           ),
+  //           IconButton(
+  //             icon: Icon(controller?.value.isCaptureOrientationLocked ?? false
+  //                 ? Icons.screen_lock_rotation
+  //                 : Icons.screen_rotation),
+  //             color: Colors.blue,
+  //             onPressed: controller != null
+  //                 ? onCaptureOrientationLockButtonPressed
+  //                 : null,
+  //           ),
+  //         ],
+  //       ),
+  //       _flashModeControlRowWidget(),
+  //       _exposureModeControlRowWidget(),
+  //       _focusModeControlRowWidget(),
+  //     ],
+  //   );
+  // }
 
-  Widget _flashModeControlRowWidget() {
-    return SizeTransition(
-      sizeFactor: _flashModeControlRowAnimation,
-      child: ClipRect(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: <Widget>[
-            IconButton(
-              icon: const Icon(Icons.flash_off),
-              color: controller?.value.flashMode == FlashMode.off
-                  ? Colors.orange
-                  : Colors.blue,
-              onPressed: controller != null
-                  ? () => onSetFlashModeButtonPressed(FlashMode.off)
-                  : null,
-            ),
-            IconButton(
-              icon: const Icon(Icons.flash_auto),
-              color: controller?.value.flashMode == FlashMode.auto
-                  ? Colors.orange
-                  : Colors.blue,
-              onPressed: controller != null
-                  ? () => onSetFlashModeButtonPressed(FlashMode.auto)
-                  : null,
-            ),
-            IconButton(
-              icon: const Icon(Icons.flash_on),
-              color: controller?.value.flashMode == FlashMode.always
-                  ? Colors.orange
-                  : Colors.blue,
-              onPressed: controller != null
-                  ? () => onSetFlashModeButtonPressed(FlashMode.always)
-                  : null,
-            ),
-            IconButton(
-              icon: const Icon(Icons.highlight),
-              color: controller?.value.flashMode == FlashMode.torch
-                  ? Colors.orange
-                  : Colors.blue,
-              onPressed: controller != null
-                  ? () => onSetFlashModeButtonPressed(FlashMode.torch)
-                  : null,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // Widget _flashModeControlRowWidget() {
+  //   return SizeTransition(
+  //     sizeFactor: _flashModeControlRowAnimation,
+  //     child: ClipRect(
+  //       child: Row(
+  //         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  //         children: <Widget>[
+  //           IconButton(
+  //             icon: const Icon(Icons.flash_off),
+  //             color: controller?.value.flashMode == FlashMode.off
+  //                 ? Colors.orange
+  //                 : Colors.blue,
+  //             onPressed: controller != null
+  //                 ? () => onSetFlashModeButtonPressed(FlashMode.off)
+  //                 : null,
+  //           ),
+  //           IconButton(
+  //             icon: const Icon(Icons.flash_auto),
+  //             color: controller?.value.flashMode == FlashMode.auto
+  //                 ? Colors.orange
+  //                 : Colors.blue,
+  //             onPressed: controller != null
+  //                 ? () => onSetFlashModeButtonPressed(FlashMode.auto)
+  //                 : null,
+  //           ),
+  //           IconButton(
+  //             icon: const Icon(Icons.flash_on),
+  //             color: controller?.value.flashMode == FlashMode.always
+  //                 ? Colors.orange
+  //                 : Colors.blue,
+  //             onPressed: controller != null
+  //                 ? () => onSetFlashModeButtonPressed(FlashMode.always)
+  //                 : null,
+  //           ),
+  //           IconButton(
+  //             icon: const Icon(Icons.highlight),
+  //             color: controller?.value.flashMode == FlashMode.torch
+  //                 ? Colors.orange
+  //                 : Colors.blue,
+  //             onPressed: controller != null
+  //                 ? () => onSetFlashModeButtonPressed(FlashMode.torch)
+  //                 : null,
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
-  Widget _exposureModeControlRowWidget() {
-    final ButtonStyle styleAuto = TextButton.styleFrom(
-      // TODO(darrenaustin): Migrate to new API once it lands in stable: https://github.com/flutter/flutter/issues/105724
-      // ignore: deprecated_member_use
-      primary: controller?.value.exposureMode == ExposureMode.auto
-          ? Colors.orange
-          : Colors.blue,
-    );
-    final ButtonStyle styleLocked = TextButton.styleFrom(
-      // TODO(darrenaustin): Migrate to new API once it lands in stable: https://github.com/flutter/flutter/issues/105724
-      // ignore: deprecated_member_use
-      primary: controller?.value.exposureMode == ExposureMode.locked
-          ? Colors.orange
-          : Colors.blue,
-    );
+  // Widget _exposureModeControlRowWidget() {
+  //   final ButtonStyle styleAuto = TextButton.styleFrom(
+  //     // TODO(darrenaustin): Migrate to new API once it lands in stable: https://github.com/flutter/flutter/issues/105724
+  //     // ignore: deprecated_member_use
+  //     primary: controller?.value.exposureMode == ExposureMode.auto
+  //         ? Colors.orange
+  //         : Colors.blue,
+  //   );
+  //   final ButtonStyle styleLocked = TextButton.styleFrom(
+  //     // TODO(darrenaustin): Migrate to new API once it lands in stable: https://github.com/flutter/flutter/issues/105724
+  //     // ignore: deprecated_member_use
+  //     primary: controller?.value.exposureMode == ExposureMode.locked
+  //         ? Colors.orange
+  //         : Colors.blue,
+  //   );
+  //
+  //   return SizeTransition(
+  //     sizeFactor: _exposureModeControlRowAnimation,
+  //     child: ClipRect(
+  //       child: Container(
+  //         color: Colors.grey.shade50,
+  //         child: Column(
+  //           children: <Widget>[
+  //             const Center(
+  //               child: Text('Exposure Mode'),
+  //             ),
+  //             Row(
+  //               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  //               children: <Widget>[
+  //                 TextButton(
+  //                   style: styleAuto,
+  //                   onPressed: controller != null
+  //                       ? () =>
+  //                           onSetExposureModeButtonPressed(ExposureMode.auto)
+  //                       : null,
+  //                   onLongPress: () {
+  //                     if (controller != null) {
+  //                       controller!.setExposurePoint(null);
+  //                       showInSnackBar('Resetting exposure point');
+  //                     }
+  //                   },
+  //                   child: const Text('AUTO'),
+  //                 ),
+  //                 TextButton(
+  //                   style: styleLocked,
+  //                   onPressed: controller != null
+  //                       ? () =>
+  //                           onSetExposureModeButtonPressed(ExposureMode.locked)
+  //                       : null,
+  //                   child: const Text('LOCKED'),
+  //                 ),
+  //                 TextButton(
+  //                   style: styleLocked,
+  //                   onPressed: controller != null
+  //                       ? () => controller!.setExposureOffset(0.0)
+  //                       : null,
+  //                   child: const Text('RESET OFFSET'),
+  //                 ),
+  //               ],
+  //             ),
+  //             const Center(
+  //               child: Text('Exposure Offset'),
+  //             ),
+  //             Row(
+  //               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  //               children: <Widget>[
+  //                 Text(_minAvailableExposureOffset.toString()),
+  //                 Slider(
+  //                   value: _currentExposureOffset,
+  //                   min: _minAvailableExposureOffset,
+  //                   max: _maxAvailableExposureOffset,
+  //                   label: _currentExposureOffset.toString(),
+  //                   onChanged: _minAvailableExposureOffset ==
+  //                           _maxAvailableExposureOffset
+  //                       ? null
+  //                       : setExposureOffset,
+  //                 ),
+  //                 Text(_maxAvailableExposureOffset.toString()),
+  //               ],
+  //             ),
+  //           ],
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
-    return SizeTransition(
-      sizeFactor: _exposureModeControlRowAnimation,
-      child: ClipRect(
-        child: Container(
-          color: Colors.grey.shade50,
-          child: Column(
-            children: <Widget>[
-              const Center(
-                child: Text('Exposure Mode'),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: <Widget>[
-                  TextButton(
-                    style: styleAuto,
-                    onPressed: controller != null
-                        ? () =>
-                        onSetExposureModeButtonPressed(ExposureMode.auto)
-                        : null,
-                    onLongPress: () {
-                      if (controller != null) {
-                        controller!.setExposurePoint(null);
-                        showInSnackBar('Resetting exposure point');
-                      }
-                    },
-                    child: const Text('AUTO'),
-                  ),
-                  TextButton(
-                    style: styleLocked,
-                    onPressed: controller != null
-                        ? () =>
-                        onSetExposureModeButtonPressed(ExposureMode.locked)
-                        : null,
-                    child: const Text('LOCKED'),
-                  ),
-                  TextButton(
-                    style: styleLocked,
-                    onPressed: controller != null
-                        ? () => controller!.setExposureOffset(0.0)
-                        : null,
-                    child: const Text('RESET OFFSET'),
-                  ),
-                ],
-              ),
-              const Center(
-                child: Text('Exposure Offset'),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: <Widget>[
-                  Text(_minAvailableExposureOffset.toString()),
-                  Slider(
-                    value: _currentExposureOffset,
-                    min: _minAvailableExposureOffset,
-                    max: _maxAvailableExposureOffset,
-                    label: _currentExposureOffset.toString(),
-                    onChanged: _minAvailableExposureOffset ==
-                        _maxAvailableExposureOffset
-                        ? null
-                        : setExposureOffset,
-                  ),
-                  Text(_maxAvailableExposureOffset.toString()),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _focusModeControlRowWidget() {
-    final ButtonStyle styleAuto = TextButton.styleFrom(
-      // TODO(darrenaustin): Migrate to new API once it lands in stable: https://github.com/flutter/flutter/issues/105724
-      // ignore: deprecated_member_use
-      primary: controller?.value.focusMode == FocusMode.auto
-          ? Colors.orange
-          : Colors.blue,
-    );
-    final ButtonStyle styleLocked = TextButton.styleFrom(
-      // TODO(darrenaustin): Migrate to new API once it lands in stable: https://github.com/flutter/flutter/issues/105724
-      // ignore: deprecated_member_use
-      primary: controller?.value.focusMode == FocusMode.locked
-          ? Colors.orange
-          : Colors.blue,
-    );
-
-    return SizeTransition(
-      sizeFactor: _focusModeControlRowAnimation,
-      child: ClipRect(
-        child: Container(
-          color: Colors.grey.shade50,
-          child: Column(
-            children: <Widget>[
-              const Center(
-                child: Text('Focus Mode'),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: <Widget>[
-                  TextButton(
-                    style: styleAuto,
-                    onPressed: controller != null
-                        ? () => onSetFocusModeButtonPressed(FocusMode.auto)
-                        : null,
-                    onLongPress: () {
-                      if (controller != null) {
-                        controller!.setFocusPoint(null);
-                      }
-                      showInSnackBar('Resetting focus point');
-                    },
-                    child: const Text('AUTO'),
-                  ),
-                  TextButton(
-                    style: styleLocked,
-                    onPressed: controller != null
-                        ? () => onSetFocusModeButtonPressed(FocusMode.locked)
-                        : null,
-                    child: const Text('LOCKED'),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  // Widget _focusModeControlRowWidget() {
+  //   final ButtonStyle styleAuto = TextButton.styleFrom(
+  //     // TODO(darrenaustin): Migrate to new API once it lands in stable: https://github.com/flutter/flutter/issues/105724
+  //     // ignore: deprecated_member_use
+  //     primary: controller?.value.focusMode == FocusMode.auto
+  //         ? Colors.orange
+  //         : Colors.blue,
+  //   );
+  //   final ButtonStyle styleLocked = TextButton.styleFrom(
+  //     // TODO(darrenaustin): Migrate to new API once it lands in stable: https://github.com/flutter/flutter/issues/105724
+  //     // ignore: deprecated_member_use
+  //     primary: controller?.value.focusMode == FocusMode.locked
+  //         ? Colors.orange
+  //         : Colors.blue,
+  //   );
+  //
+  //   return SizeTransition(
+  //     sizeFactor: _focusModeControlRowAnimation,
+  //     child: ClipRect(
+  //       child: Container(
+  //         color: Colors.grey.shade50,
+  //         child: Column(
+  //           children: <Widget>[
+  //             const Center(
+  //               child: Text('Focus Mode'),
+  //             ),
+  //             Row(
+  //               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  //               children: <Widget>[
+  //                 TextButton(
+  //                   style: styleAuto,
+  //                   onPressed: controller != null
+  //                       ? () => onSetFocusModeButtonPressed(FocusMode.auto)
+  //                       : null,
+  //                   onLongPress: () {
+  //                     if (controller != null) {
+  //                       controller!.setFocusPoint(null);
+  //                     }
+  //                     showInSnackBar('Resetting focus point');
+  //                   },
+  //                   child: const Text('AUTO'),
+  //                 ),
+  //                 TextButton(
+  //                   style: styleLocked,
+  //                   onPressed: controller != null
+  //                       ? () => onSetFocusModeButtonPressed(FocusMode.locked)
+  //                       : null,
+  //                   child: const Text('LOCKED'),
+  //                 ),
+  //               ],
+  //             ),
+  //           ],
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   /// Display the control bar with buttons to take pictures and record videos.
   Widget _captureControlRowWidget() {
@@ -520,55 +595,55 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: <Widget>[
-        IconButton(
-          icon: const Icon(Icons.camera_alt),
-          color: Colors.blue,
-          onPressed: cameraController != null &&
-              cameraController.value.isInitialized &&
-              !cameraController.value.isRecordingVideo
-              ? onTakePictureButtonPressed
-              : null,
-        ),
+        // IconButton(
+        //   icon: const Icon(Icons.camera_alt),
+        //   color: Colors.blue,
+        //   onPressed: cameraController != null &&
+        //           cameraController.value.isInitialized &&
+        //           !cameraController.value.isRecordingVideo
+        //       ? onTakePictureButtonPressed
+        //       : null,
+        // ),
         IconButton(
           icon: const Icon(Icons.videocam),
           color: Colors.blue,
           onPressed: cameraController != null &&
-              cameraController.value.isInitialized &&
-              !cameraController.value.isRecordingVideo
+                  cameraController.value.isInitialized &&
+                  !cameraController.value.isRecordingVideo
               ? onVideoRecordButtonPressed
               : null,
         ),
         IconButton(
           icon: cameraController != null &&
-              cameraController.value.isRecordingPaused
+                  cameraController.value.isRecordingPaused
               ? const Icon(Icons.play_arrow)
               : const Icon(Icons.pause),
           color: Colors.blue,
           onPressed: cameraController != null &&
-              cameraController.value.isInitialized &&
-              cameraController.value.isRecordingVideo
+                  cameraController.value.isInitialized &&
+                  cameraController.value.isRecordingVideo
               ? (cameraController.value.isRecordingPaused)
-              ? onResumeButtonPressed
-              : onPauseButtonPressed
+                  ? onResumeButtonPressed
+                  : onPauseButtonPressed
               : null,
         ),
         IconButton(
           icon: const Icon(Icons.stop),
           color: Colors.red,
           onPressed: cameraController != null &&
-              cameraController.value.isInitialized &&
-              cameraController.value.isRecordingVideo
+                  cameraController.value.isInitialized &&
+                  cameraController.value.isRecordingVideo
               ? onStopButtonPressed
               : null,
         ),
         IconButton(
           icon: const Icon(Icons.pause_presentation),
           color:
-          cameraController != null && cameraController.value.isPreviewPaused
-              ? Colors.red
-              : Colors.blue,
+              cameraController != null && cameraController.value.isPreviewPaused
+                  ? Colors.red
+                  : Colors.blue,
           onPressed:
-          cameraController == null ? null : onPausePreviewButtonPressed,
+              cameraController == null ? null : onPausePreviewButtonPressed,
         ),
       ],
     );
@@ -598,6 +673,7 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
             width: 90.0,
             child: RadioListTile<CameraDescription>(
               title: Icon(getCameraLensIcon(cameraDescription.lensDirection)),
+              // title: Text("Start"),
               groupValue: controller?.description,
               value: cameraDescription,
               onChanged: onChanged,
@@ -668,12 +744,12 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
         // The exposure mode is currently not supported on the web.
         ...!kIsWeb
             ? <Future<Object?>>[
-          cameraController.getMinExposureOffset().then(
-                  (double value) => _minAvailableExposureOffset = value),
-          cameraController
-              .getMaxExposureOffset()
-              .then((double value) => _maxAvailableExposureOffset = value)
-        ]
+                cameraController.getMinExposureOffset().then(
+                    (double value) => _minAvailableExposureOffset = value),
+                cameraController
+                    .getMaxExposureOffset()
+                    .then((double value) => _maxAvailableExposureOffset = value)
+              ]
             : <Future<Object?>>[],
         cameraController
             .getMaxZoomLevel()
@@ -688,22 +764,22 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
           showInSnackBar('You have denied camera access.');
           break;
         case 'CameraAccessDeniedWithoutPrompt':
-        // iOS only
+          // iOS only
           showInSnackBar('Please go to Settings app to enable camera access.');
           break;
         case 'CameraAccessRestricted':
-        // iOS only
+          // iOS only
           showInSnackBar('Camera access is restricted.');
           break;
         case 'AudioAccessDenied':
           showInSnackBar('You have denied audio access.');
           break;
         case 'AudioAccessDeniedWithoutPrompt':
-        // iOS only
+          // iOS only
           showInSnackBar('Please go to Settings app to enable audio access.');
           break;
         case 'AudioAccessRestricted':
-        // iOS only
+          // iOS only
           showInSnackBar('Audio access is restricted.');
           break;
         default:
@@ -717,20 +793,21 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
     }
   }
 
-  void onTakePictureButtonPressed() {
-    takePicture().then((XFile? file) {
-      if (mounted) {
-        setState(() {
-          imageFile = file;
-          videoController?.dispose();
-          videoController = null;
-        });
-        if (file != null) {
-          showInSnackBar('Picture saved to ${file.path}');
-        }
-      }
-    });
-  }
+  // void onTakePictureButtonPressed() {
+  //   takePicture().then((XFile? file) {
+  //     if (mounted) {
+  //       setState(() {
+  //         imageFile = file;
+  //         videoController?.dispose();
+  //         videoController = null;
+  //       });
+  //       if (file != null) {
+  //         showInSnackBar('Picture saved to ${file.path}');
+  //         print("Neel no path : ${file.path}");
+  //       }
+  //     }
+  //   });
+  // }
 
   void onFlashModeButtonPressed() {
     if (_flashModeControlRowAnimationController.value == 1) {
@@ -829,6 +906,7 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
       }
       if (file != null) {
         showInSnackBar('Video recorded to ${file.path}');
+        print("Jay's path ${file.path}");
         videoFile = file;
         _startVideoPlayer();
       }
@@ -1017,33 +1095,33 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
     await videoController?.dispose();
     if (mounted) {
       setState(() {
-        imageFile = null;
+        // imageFile = null;
         videoController = vController;
       });
     }
     await vController.play();
   }
 
-  Future<XFile?> takePicture() async {
-    final CameraController? cameraController = controller;
-    if (cameraController == null || !cameraController.value.isInitialized) {
-      showInSnackBar('Error: select a camera first.');
-      return null;
-    }
-
-    if (cameraController.value.isTakingPicture) {
-      // A capture is already pending, do nothing.
-      return null;
-    }
-
-    try {
-      final XFile file = await cameraController.takePicture();
-      return file;
-    } on CameraException catch (e) {
-      _showCameraException(e);
-      return null;
-    }
-  }
+  // Future<XFile?> takePicture() async {
+  //   final CameraController? cameraController = controller;
+  //   if (cameraController == null || !cameraController.value.isInitialized) {
+  //     showInSnackBar('Error: select a camera first.');
+  //     return null;
+  //   }
+  //
+  //   if (cameraController.value.isTakingPicture) {
+  //     // A capture is already pending, do nothing.
+  //     return null;
+  //   }
+  //
+  //   try {
+  //     final XFile file = await cameraController.takePicture();
+  //     return file;
+  //   } on CameraException catch (e) {
+  //     _showCameraException(e);
+  //     return null;
+  //   }
+  // }
 
   void _showCameraException(CameraException e) {
     logError(e.code, e.description);
@@ -1054,18 +1132,14 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
 /// CameraApp is the Main Application.
 class CameraApp extends StatelessWidget {
   /// Default Constructor
-   final List<CameraDescription> cameras;
-    final Function logError;
-  const CameraApp({super.key,required this.cameras, required this.logError});
+  final List<CameraDescription> cameras;
+  final Function logError;
+  const CameraApp({super.key, required this.cameras, required this.logError});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: CameraExampleHome(cameras: cameras,logError: logError),
+      home: CameraExampleHome(cameras: cameras, logError: logError),
     );
   }
 }
-
-
-
-
