@@ -23,17 +23,18 @@ enum RecordingState {
 class _RecorderViewState extends State<RecorderView> {
   IconData _recordIcon = Icons.mic;
   String _recordText = 'Click To Start';
-
   // RecordingState - Inbulid variable for handling recording's state
-  RecordingState _recordingState = RecordingState.UnSet;
+
+  RecordingState _recordingState = RecordingState.Set;
 
   //  Recorder properties
   late FlutterAudioRecorder2 audioRecorder;
 
+
+
   @override
   void initState() {
     super.initState();
-
     FlutterAudioRecorder2.hasPermissions.then(
       (hasPermission) {
         if (hasPermission!) {
@@ -44,6 +45,10 @@ class _RecorderViewState extends State<RecorderView> {
       },
     );
   }
+
+  // Future<void> jay() async {
+  //   hasPermission = await FlutterAudioRecorder2.hasPermissions;
+  // }
 
   @override
   void dispose() {
@@ -177,7 +182,6 @@ class _RecorderViewState extends State<RecorderView> {
 
   Future<void> _recordVoice() async {
     final hasPermission = await FlutterAudioRecorder2.hasPermissions;
-
     /// if hasPermission is not null then returns hasPermission , otherwise returns null
     if (hasPermission ?? false) {
       await _initRecorder();
@@ -187,12 +191,18 @@ class _RecorderViewState extends State<RecorderView> {
       _recordIcon = Icons.stop;
       _recordText = "Recording...";
     } else {
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please allow recording from settings.'),
-        ),
-      );
+      // ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   const SnackBar(
+      //     content: Text('Please allow recording from settings.'),
+      //   ),
+      // );
+      await _initRecorder();
+
+      await _startRecording();
+      _recordingState = RecordingState.Recording;
+      _recordIcon = Icons.stop;
+      _recordText = "Recording...";
     }
   }
 }
