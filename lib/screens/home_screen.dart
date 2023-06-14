@@ -1,3 +1,4 @@
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:jay_sound_meter/screens/camera_home.dart';
 import 'package:jay_sound_meter/screens/uploade_video_noise_measure.dart';
@@ -8,7 +9,9 @@ import 'package:jay_sound_meter/screens/save_main.dart';
 import 'package:jay_sound_meter/screens/settings.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  final List<CameraDescription> cameras;
+  final Function logError;
+  HomeScreen({super.key, required this.cameras, required this.logError});
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +50,7 @@ class HomeScreen extends StatelessWidget {
               getColor: Colors.blue.shade400,
               icon: Icons.record_voice_over_sharp),
           ReusableGridView(
-              className: CameraHome(),
+              className: CameraHome(cameras: cameras, logError: logError),
               label: "CAMERA",
               getColor: Colors.blue.shade500,
               icon: Icons.camera_enhance_sharp),
