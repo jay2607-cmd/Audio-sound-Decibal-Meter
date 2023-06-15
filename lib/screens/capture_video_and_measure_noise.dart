@@ -1,15 +1,20 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:jay_sound_meter/logic/dB_meter.dart';
-import 'package:jay_sound_meter/screens/camera_video_noise_measure.dart';
+import 'package:jay_sound_meter/screens/screenshot.dart';
 import 'package:noise_meter/noise_meter.dart';
-import 'package:syncfusion_flutter_gauges/gauges.dart';
 import 'package:video_player/video_player.dart';
+
+import 'camera_video_noise_measure.dart';
 
 class CameraExampleHome extends StatefulWidget {
   final List<CameraDescription> cameras;
@@ -42,13 +47,20 @@ IconData getCameraLensIcon(CameraLensDirection direction) {
 
 class _CameraExampleHomeState extends State<CameraExampleHome>
     with WidgetsBindingObserver, TickerProviderStateMixin {
+
+  // variable for saving screenshot
+  final GlobalKey _key = GlobalKey();
+
+
   //parameters come from main.dart
   final List<CameraDescription> cameras;
   final Function logError;
+
   _CameraExampleHomeState({required this.cameras, required this.logError});
 
   // variables for camera controlling
   CameraController? controller;
+
   // XFile? imageFile;
   XFile? videoFile;
   VideoPlayerController? videoController;
@@ -77,8 +89,6 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
   late NoiseMeter noiseMeter;
   double maxDB = 0;
   double? meanDB;
-
-
 
   @override
   void initState() {
@@ -119,14 +129,14 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
     WidgetsBinding.instance.removeObserver(this);
     _flashModeControlRowAnimationController.dispose();
     _exposureModeControlRowAnimationController.dispose();
-    noiseStop();
+    // noiseStop();
     super.dispose();
   }
 
   void onData(NoiseReading noiseReading) {
-    // setState(() {
-    //   if (!isRecording) isRecording = true;
-    // });
+    setState(() {
+      if (!isRecording) isRecording = true;
+    });
     maxDB = noiseReading.maxDecibel;
     meanDB = noiseReading.meanDecibel;
   }
@@ -151,7 +161,7 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
       noiseSubscription!.cancel();
       noiseSubscription = null;
 
-      // setState(() => isRecording = false);
+      setState(() => isRecording = false);
     } catch (e) {
       if (kDebugMode) {
         print('stopRecorder error: $e');
@@ -159,12 +169,16 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
     }
   }
 
-
   // #docregion AppLifecycle
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     final CameraController? cameraController = controller;
     cameraController?.dispose();
+
+    if (state == AppLifecycleState.resumed ||
+        state == AppLifecycleState.paused) {
+      noiseStop();
+    }
 
     // App state changed before we got the chance to initialize.
     if (cameraController == null || !cameraController.value.isInitialized) {
@@ -177,75 +191,58 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
       _initializeCameraController(cameraController.description);
     }
   }
+
   // #enddocregion AppLifecycle
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Camera'),
-        centerTitle: true,
-      ),
-      body: Column(
-        children: <Widget>[
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.black,
-                border: Border.all(
-                  color:
-                      controller != null && controller!.value.isRecordingVideo
-                          ? Colors.redAccent
-                          : Colors.grey,
-                  width: 3.0,
+    return RepaintBoundary(
+      key: _key,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Camera'),
+          centerTitle: true,
+        ),
+        body: Column(
+          children: <Widget>[
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+
+                  color: Colors.black,
+                  border: Border.all(
+                    color:
+                        controller != null && controller!.value.isRecordingVideo
+                            ? Colors.redAccent
+                            : Colors.grey,
+                    width: 3.0,
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(1.0),
+                  child: Center(
+                    child: _cameraPreviewWidget(),
+                  ),
                 ),
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(1.0),
-                child: Center(
-                  child: _cameraPreviewWidget(),
-                ),
+            ),
+            _captureControlRowWidget(),
+            // _modeControlRowWidget(),
+            Padding(
+              padding: const EdgeInsets.all(5.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: <Widget>[
+                  _cameraTogglesRowWidget(),
+                  ElevatedButton(onPressed: () {_captureScreenshot();}, child: const Text("Capture Screenshot")),
+                  // _thumbnailWidget(),
+                ],
               ),
             ),
-          ),
-          _captureControlRowWidget(),
-          // _modeControlRowWidget(),
-          Padding(
-            padding: const EdgeInsets.all(5.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: <Widget>[
-                _cameraTogglesRowWidget(),
-                ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) =>
-                                  CameraVideoNoiseMeasure(cameraFilePath: videoFile!.path,)));
-                    },
-                    child: Text("MEASURE NOISE")),
-                // _thumbnailWidget(),
-              ],
-            ),
-
-          ),
-          dBMeter(maxDB),
-          GestureDetector(
-            onDoubleTap: () {},
-            child: FloatingActionButton.extended(
-              label: Text(isRecording ? 'Stop' : 'Start'),
-              onPressed: isRecording ? noiseStop : noiseStart,
-              icon: !isRecording
-                  ? const Icon(Icons.not_started_sharp)
-                  : const Icon(Icons.stop_circle_sharp),
-              backgroundColor: isRecording ? Colors.red : Colors.green,
-            ),
-          ),
-
-        ],
+            dBMeter(maxDB),
+          ],
+        ),
       ),
-
     );
   }
 
@@ -595,6 +592,7 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: <Widget>[
+        /// Icon for capturing the photo
         // IconButton(
         //   icon: const Icon(Icons.camera_alt),
         //   color: Colors.blue,
@@ -604,15 +602,24 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
         //       ? onTakePictureButtonPressed
         //       : null,
         // ),
+
         IconButton(
           icon: const Icon(Icons.videocam),
           color: Colors.blue,
-          onPressed: cameraController != null &&
-                  cameraController.value.isInitialized &&
-                  !cameraController.value.isRecordingVideo
-              ? onVideoRecordButtonPressed
-              : null,
+          onPressed: () {
+            if (cameraController != null &&
+                cameraController.value.isInitialized &&
+                !cameraController.value.isRecordingVideo) {
+              onVideoRecordButtonPressed();
+              if (isRecording) {
+                noiseStop();
+              } else {
+                noiseStart();
+              }
+            }
+          },
         ),
+
         IconButton(
           icon: cameraController != null &&
                   cameraController.value.isRecordingPaused
@@ -630,12 +637,20 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
         IconButton(
           icon: const Icon(Icons.stop),
           color: Colors.red,
-          onPressed: cameraController != null &&
-                  cameraController.value.isInitialized &&
-                  cameraController.value.isRecordingVideo
-              ? onStopButtonPressed
-              : null,
+          onPressed: () {
+            if (cameraController != null &&
+                cameraController.value.isInitialized &&
+                cameraController.value.isRecordingVideo) {
+              onStopButtonPressed();
+              if (isRecording) {
+                noiseStop();
+              } else {
+                noiseStart();
+              }
+            }
+          },
         ),
+
         IconButton(
           icon: const Icon(Icons.pause_presentation),
           color:
@@ -809,25 +824,25 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
   //   });
   // }
 
-  void onFlashModeButtonPressed() {
-    if (_flashModeControlRowAnimationController.value == 1) {
-      _flashModeControlRowAnimationController.reverse();
-    } else {
-      _flashModeControlRowAnimationController.forward();
-      _exposureModeControlRowAnimationController.reverse();
-      _focusModeControlRowAnimationController.reverse();
-    }
-  }
+  // void onFlashModeButtonPressed() {
+  //   if (_flashModeControlRowAnimationController.value == 1) {
+  //     _flashModeControlRowAnimationController.reverse();
+  //   } else {
+  //     _flashModeControlRowAnimationController.forward();
+  //     _exposureModeControlRowAnimationController.reverse();
+  //     _focusModeControlRowAnimationController.reverse();
+  //   }
+  // }
 
-  void onExposureModeButtonPressed() {
-    if (_exposureModeControlRowAnimationController.value == 1) {
-      _exposureModeControlRowAnimationController.reverse();
-    } else {
-      _exposureModeControlRowAnimationController.forward();
-      _flashModeControlRowAnimationController.reverse();
-      _focusModeControlRowAnimationController.reverse();
-    }
-  }
+  // void onExposureModeButtonPressed() {
+  //   if (_exposureModeControlRowAnimationController.value == 1) {
+  //     _exposureModeControlRowAnimationController.reverse();
+  //   } else {
+  //     _exposureModeControlRowAnimationController.forward();
+  //     _flashModeControlRowAnimationController.reverse();
+  //     _focusModeControlRowAnimationController.reverse();
+  //   }
+  // }
 
   void onFocusModeButtonPressed() {
     if (_focusModeControlRowAnimationController.value == 1) {
@@ -839,48 +854,49 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
     }
   }
 
-  void onAudioModeButtonPressed() {
-    enableAudio = !enableAudio;
-    if (controller != null) {
-      onNewCameraSelected(controller!.description);
-    }
-  }
+  //
+  // void onAudioModeButtonPressed() {
+  //   enableAudio = !enableAudio;
+  //   if (controller != null) {
+  //     onNewCameraSelected(controller!.description);
+  //   }
+  // }
 
-  Future<void> onCaptureOrientationLockButtonPressed() async {
-    try {
-      if (controller != null) {
-        final CameraController cameraController = controller!;
-        if (cameraController.value.isCaptureOrientationLocked) {
-          await cameraController.unlockCaptureOrientation();
-          showInSnackBar('Capture orientation unlocked');
-        } else {
-          await cameraController.lockCaptureOrientation();
-          showInSnackBar(
-              'Capture orientation locked to ${cameraController.value.lockedCaptureOrientation.toString().split('.').last}');
-        }
-      }
-    } on CameraException catch (e) {
-      _showCameraException(e);
-    }
-  }
+  // Future<void> onCaptureOrientationLockButtonPressed() async {
+  //   try {
+  //     if (controller != null) {
+  //       final CameraController cameraController = controller!;
+  //       if (cameraController.value.isCaptureOrientationLocked) {
+  //         await cameraController.unlockCaptureOrientation();
+  //         showInSnackBar('Capture orientation unlocked');
+  //       } else {
+  //         await cameraController.lockCaptureOrientation();
+  //         showInSnackBar(
+  //             'Capture orientation locked to ${cameraController.value.lockedCaptureOrientation.toString().split('.').last}');
+  //       }
+  //     }
+  //   } on CameraException catch (e) {
+  //     _showCameraException(e);
+  //   }
+  // }
 
-  void onSetFlashModeButtonPressed(FlashMode mode) {
-    setFlashMode(mode).then((_) {
-      if (mounted) {
-        setState(() {});
-      }
-      showInSnackBar('Flash mode set to ${mode.toString().split('.').last}');
-    });
-  }
+  // void onSetFlashModeButtonPressed(FlashMode mode) {
+  //   setFlashMode(mode).then((_) {
+  //     if (mounted) {
+  //       setState(() {});
+  //     }
+  //     showInSnackBar('Flash mode set to ${mode.toString().split('.').last}');
+  //   });
+  // }
 
-  void onSetExposureModeButtonPressed(ExposureMode mode) {
-    setExposureMode(mode).then((_) {
-      if (mounted) {
-        setState(() {});
-      }
-      showInSnackBar('Exposure mode set to ${mode.toString().split('.').last}');
-    });
-  }
+  // void onSetExposureModeButtonPressed(ExposureMode mode) {
+  //   setExposureMode(mode).then((_) {
+  //     if (mounted) {
+  //       setState(() {});
+  //     }
+  //     showInSnackBar('Exposure mode set to ${mode.toString().split('.').last}');
+  //   });
+  // }
 
   void onSetFocusModeButtonPressed(FocusMode mode) {
     setFocusMode(mode).then((_) {
@@ -908,7 +924,7 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
         showInSnackBar('Video recorded to ${file.path}');
         print("Jay's path ${file.path}");
         videoFile = file;
-        _startVideoPlayer();
+        // _startVideoPlayer();
       }
     });
   }
@@ -1016,47 +1032,47 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
     }
   }
 
-  Future<void> setFlashMode(FlashMode mode) async {
-    if (controller == null) {
-      return;
-    }
+  // Future<void> setFlashMode(FlashMode mode) async {
+  //   if (controller == null) {
+  //     return;
+  //   }
+  //
+  //   try {
+  //     await controller!.setFlashMode(mode);
+  //   } on CameraException catch (e) {
+  //     _showCameraException(e);
+  //     rethrow;
+  //   }
+  // }
 
-    try {
-      await controller!.setFlashMode(mode);
-    } on CameraException catch (e) {
-      _showCameraException(e);
-      rethrow;
-    }
-  }
+  // Future<void> setExposureMode(ExposureMode mode) async {
+  //   if (controller == null) {
+  //     return;
+  //   }
+  //
+  //   try {
+  //     await controller!.setExposureMode(mode);
+  //   } on CameraException catch (e) {
+  //     _showCameraException(e);
+  //     rethrow;
+  //   }
+  // }
 
-  Future<void> setExposureMode(ExposureMode mode) async {
-    if (controller == null) {
-      return;
-    }
-
-    try {
-      await controller!.setExposureMode(mode);
-    } on CameraException catch (e) {
-      _showCameraException(e);
-      rethrow;
-    }
-  }
-
-  Future<void> setExposureOffset(double offset) async {
-    if (controller == null) {
-      return;
-    }
-
-    setState(() {
-      _currentExposureOffset = offset;
-    });
-    try {
-      offset = await controller!.setExposureOffset(offset);
-    } on CameraException catch (e) {
-      _showCameraException(e);
-      rethrow;
-    }
-  }
+  // Future<void> setExposureOffset(double offset) async {
+  //   if (controller == null) {
+  //     return;
+  //   }
+  //
+  //   setState(() {
+  //     _currentExposureOffset = offset;
+  //   });
+  //   try {
+  //     offset = await controller!.setExposureOffset(offset);
+  //   } on CameraException catch (e) {
+  //     _showCameraException(e);
+  //     rethrow;
+  //   }
+  // }
 
   Future<void> setFocusMode(FocusMode mode) async {
     if (controller == null) {
@@ -1071,36 +1087,37 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
     }
   }
 
-  Future<void> _startVideoPlayer() async {
-    if (videoFile == null) {
-      return;
-    }
-
-    final VideoPlayerController vController = kIsWeb
-        ? VideoPlayerController.network(videoFile!.path)
-        : VideoPlayerController.file(File(videoFile!.path));
-
-    videoPlayerListener = () {
-      if (videoController != null) {
-        // Refreshing the state to update video player with the correct ratio.
-        if (mounted) {
-          setState(() {});
-        }
-        videoController!.removeListener(videoPlayerListener!);
-      }
-    };
-    vController.addListener(videoPlayerListener!);
-    await vController.setLooping(true);
-    await vController.initialize();
-    await videoController?.dispose();
-    if (mounted) {
-      setState(() {
-        // imageFile = null;
-        videoController = vController;
-      });
-    }
-    await vController.play();
-  }
+  //
+  // Future<void> _startVideoPlayer() async {
+  //   if (videoFile == null) {
+  //     return;
+  //   }
+  //
+  //   final VideoPlayerController vController = kIsWeb
+  //       ? VideoPlayerController.network(videoFile!.path)
+  //       : VideoPlayerController.file(File(videoFile!.path));
+  //
+  //   videoPlayerListener = () {
+  //     if (videoController != null) {
+  //       // Refreshing the state to update video player with the correct ratio.
+  //       if (mounted) {
+  //         setState(() {});
+  //       }
+  //       videoController!.removeListener(videoPlayerListener!);
+  //     }
+  //   };
+  //   vController.addListener(videoPlayerListener!);
+  //   await vController.setLooping(true);
+  //   await vController.initialize();
+  //   await videoController?.dispose();
+  //   if (mounted) {
+  //     setState(() {
+  //       // imageFile = null;
+  //       videoController = vController;
+  //     });
+  //   }
+  //   await vController.play();
+  // }
 
   // Future<XFile?> takePicture() async {
   //   final CameraController? cameraController = controller;
@@ -1127,6 +1144,26 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
     logError(e.code, e.description);
     showInSnackBar('Error: ${e.code}\n${e.description}');
   }
+
+  void _captureScreenshot() async {
+    RenderRepaintBoundary boundary =
+    _key.currentContext!.findRenderObject() as RenderRepaintBoundary;
+    if (boundary.debugNeedsPaint) {
+      Timer(Duration(seconds: 1), () => _captureScreenshot());
+      return null;
+    }
+    ui.Image image = await boundary.toImage();
+
+    ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+
+    if(byteData != null) {
+      Uint8List pngint8 = byteData.buffer.asUint8List();
+      final saveImage = await ImageGallerySaver.saveImage(Uint8List.fromList(pngint8), quality: 90, name: "Screenshot-${DateTime.now()}.png");
+      print("SaveImage : $saveImage");
+    }
+
+  }
+
 }
 
 /// CameraApp is the Main Application.
@@ -1134,12 +1171,16 @@ class CameraApp extends StatelessWidget {
   /// Default Constructor
   final List<CameraDescription> cameras;
   final Function logError;
-  const CameraApp({super.key, required this.cameras, required this.logError});
+
+  CameraApp({super.key, required this.cameras, required this.logError});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: CameraExampleHome(cameras: cameras, logError: logError),
+    return SafeArea(
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: CameraExampleHome(cameras: cameras, logError: logError),
+      ),
     );
   }
 }
