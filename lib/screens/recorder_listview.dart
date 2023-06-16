@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:io';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
@@ -348,15 +350,15 @@ class _RecordListViewState extends State<RecordListView>
       noiseStop();
     });
   }
-  //
-  // Future<File> changeFileNameOnly(File file, String newFileName) async {
-  //   var path = file.path;
-  //
-  //   var lastSeparator = path.lastIndexOf(Platform.pathSeparator);
-  //   var newPath = path.substring(0, lastSeparator + 1) + newFileName;
-  //   print("new path: ${newPath}");
-  //   return await file.rename(newPath);
-  // }
+
+  Future<File> replaceFile(File file, String newFileName) async {
+    var path = file.path;
+
+    var lastSeparator = path.lastIndexOf(Platform.pathSeparator);
+    var newPath = path.substring(0, lastSeparator + 1) + newFileName;
+    print("new path: ${newPath}");
+    return await file.rename(newPath);
+  }
 
   Future<File?> changeFileNameOnly(File file, String newFileName) async {
     var path = file.path;
@@ -366,18 +368,28 @@ class _RecordListViewState extends State<RecordListView>
     // Check if the new file name already exists
     var newFile = File(newPath);
     if (await newFile.exists()) {
+      // Show an alert dialog
       showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('File Name Already Exists'),
-            content: Text(
-                'The specified file name already exists. Please choose a different name.'),
+            title: const Text('File Name Already Exists'),
+            content: const Text(
+                'The specified file name already exists. Do you want to replace it?'),
             actions: [
+              // Cancel button
               TextButton(
-                child: Text('OK'),
+                child: const Text('Cancel'),
                 onPressed: () {
-                  Navigator.of(context).pop();
+                  Navigator.of(context).pop(null);
+                },
+              ),
+              // Replace button
+              TextButton(
+                child: const Text('Replace'),
+                onPressed: () {
+                  replaceFile(file,"${renameController.text}.aac");
+                  Navigator.of(context).pop(file);
                 },
               ),
             ],

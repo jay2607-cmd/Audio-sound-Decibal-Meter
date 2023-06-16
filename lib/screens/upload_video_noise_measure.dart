@@ -21,9 +21,8 @@ class UploadedVideoNoiseMeasure extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: const MyHomePage(title: 'Camera Noise Measure'),
+    return Scaffold(
+      body: const MyHomePage(title: 'Camera Noise Measure'),
     );
   }
 }
@@ -221,7 +220,7 @@ class SelectVideoState extends State<SelectVideo> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        TextButton(
+        ElevatedButton(
           onPressed: () async {
             final file =
                 await ImagePicker().pickVideo(source: ImageSource.gallery);

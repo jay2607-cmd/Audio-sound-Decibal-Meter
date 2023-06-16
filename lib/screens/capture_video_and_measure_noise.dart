@@ -10,8 +10,9 @@ import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:jay_sound_meter/logic/dB_meter.dart';
-import 'package:jay_sound_meter/screens/screenshot.dart';
+import 'package:jay_sound_meter/screens/live_screenshot.dart';
 import 'package:noise_meter/noise_meter.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:video_player/video_player.dart';
 
 import 'camera_video_noise_measure.dart';
@@ -47,10 +48,8 @@ IconData getCameraLensIcon(CameraLensDirection direction) {
 
 class _CameraExampleHomeState extends State<CameraExampleHome>
     with WidgetsBindingObserver, TickerProviderStateMixin {
-
   // variable for saving screenshot
   final GlobalKey _key = GlobalKey();
-
 
   //parameters come from main.dart
   final List<CameraDescription> cameras;
@@ -89,6 +88,7 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
   late NoiseMeter noiseMeter;
   double maxDB = 0;
   double? meanDB;
+
 
   @override
   void initState() {
@@ -208,7 +208,6 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
-
                   color: Colors.black,
                   border: Border.all(
                     color:
@@ -231,14 +230,36 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
             Padding(
               padding: const EdgeInsets.all(5.0),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
                   _cameraTogglesRowWidget(),
-                  ElevatedButton(onPressed: () {_captureScreenshot();}, child: const Text("Capture Screenshot")),
                   // _thumbnailWidget(),
                 ],
               ),
             ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                    onPressed: () {
+                      _captureScreenshot();
+                      counter++;
+                    },
+                    child: const Text("Screenshot")),
+                SizedBox(
+                  width: 25,
+                ),
+                ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => ImageListScreen()));
+                    },
+                    child: const Text("History")),
+              ],
+            ),
+
             dBMeter(maxDB),
           ],
         ),
@@ -1144,26 +1165,36 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
     logError(e.code, e.description);
     showInSnackBar('Error: ${e.code}\n${e.description}');
   }
-
+  int counter = 0;
   void _captureScreenshot() async {
+
     RenderRepaintBoundary boundary =
-    _key.currentContext!.findRenderObject() as RenderRepaintBoundary;
+        _key.currentContext!.findRenderObject() as RenderRepaintBoundary;
     if (boundary.debugNeedsPaint) {
-      Timer(Duration(seconds: 1), () => _captureScreenshot());
+      Timer(Duration(seconds: 2), () => _captureScreenshot());
       return null;
     }
     ui.Image image = await boundary.toImage();
 
     ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
 
-    if(byteData != null) {
-      Uint8List pngint8 = byteData.buffer.asUint8List();
-      final saveImage = await ImageGallerySaver.saveImage(Uint8List.fromList(pngint8), quality: 90, name: "Screenshot-${DateTime.now()}.png");
-      print("SaveImage : $saveImage");
+    if (byteData != null) {
+      // Uint8List pngint8 = byteData.buffer.asUint8List();
+      // final saveImage = await ImageGallerySaver.saveImage(
+      //     Uint8List.fromList(pngint8),
+      //     quality: 90,
+      //     name: "Screenshot-${DateTime.now()}.png");
+      // print("SaveImage : $saveImage");
+
+
+      //write an image
+      final directory = await getExternalStorageDirectory();
+      final imagePath = await File('${directory!.path}/${DateTime.now()
+          }.png').create();
+      print('Image Path : ${imagePath}');
+      await imagePath.writeAsBytes(byteData.buffer.asUint8List());
     }
-
   }
-
 }
 
 /// CameraApp is the Main Application.
@@ -1177,9 +1208,9 @@ class CameraApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home: CameraExampleHome(cameras: cameras, logError: logError),
+      child: Scaffold(
+        // debugShowCheckedModeBanner: false,
+        body: CameraExampleHome(cameras: cameras, logError: logError),
       ),
     );
   }
