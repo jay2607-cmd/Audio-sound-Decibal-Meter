@@ -1,10 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:camera/camera.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:jay_sound_meter/logic/dB_Data.dart';
 import 'package:jay_sound_meter/screens/screenshot_preview.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -42,24 +40,22 @@ class _ImageListScreenState extends State<ImageListScreen> {
         title: Text('PNG Images'),
         centerTitle: true,
       ),
-      body: GestureDetector(
-        onTap: () {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) =>
-                      ScreenshotPreview(filePath: file.path)));
-        },
-        child: GridView.builder(
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-            crossAxisSpacing: 8.0,
-            mainAxisSpacing: 50.0,
-          ),
-          itemCount: imageFiles.length,
-          itemBuilder: (BuildContext context, int index) {
-            file = imageFiles[index];
-            return Column(
+      body: GridView.builder(
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          crossAxisSpacing: 8.0,
+          mainAxisSpacing: 50.0,
+        ),
+        itemCount: imageFiles.length,
+        itemBuilder: (BuildContext context, int index) {
+          file = imageFiles[index];
+          return GestureDetector(
+            onTap: () {
+              print("${index}");
+              Navigator.push(context, MaterialPageRoute(builder: (context) =>
+                  ScreenshotPreview(filePath: imageFiles[index].path,file: imageFiles[index],)));
+            },
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -69,9 +65,9 @@ class _ImageListScreenState extends State<ImageListScreen> {
                 Text(file.path.substring(67, 77)),
                 Text(file.path.substring(77, 86)),
               ],
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }
