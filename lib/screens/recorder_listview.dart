@@ -8,6 +8,7 @@ import 'package:jay_sound_meter/logic/dB_meter.dart';
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:noise_meter/noise_meter.dart';
+import 'package:path_provider/path_provider.dart';
 
 class RecordListView extends StatefulWidget {
   final List<String> records;
@@ -20,13 +21,12 @@ class RecordListView extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _RecordListViewState createState() =>
-      _RecordListViewState(records: records, appDirectory: appDirectory);
+  _RecordListViewState createState() => _RecordListViewState();
 }
 
 class _RecordListViewState extends State<RecordListView>
     with WidgetsBindingObserver {
-  _RecordListViewState({required this.records, required this.appDirectory});
+  _RecordListViewState();
 
   AudioPlayer audioPlayer = AudioPlayer();
 
@@ -41,9 +41,9 @@ class _RecordListViewState extends State<RecordListView>
   double maxDB = 0;
   double? meanDB;
 
-  final Directory appDirectory;
+  late final Directory appDirectory;
 
-  List<String> records;
+  // List<String> widget.records;
   late int _totalDuration;
   late int _currentDuration;
   double _completedPercentage = 0.0;
@@ -131,7 +131,7 @@ class _RecordListViewState extends State<RecordListView>
     );
   }
 
-  IconButton renameIcon(BuildContext context, File file) {
+  IconButton renameIcon(BuildContext context, File file, int position) {
     return IconButton(
         onPressed: () {
           showDialog(
@@ -164,13 +164,32 @@ class _RecordListViewState extends State<RecordListView>
 
                       await changeFileNameOnly(
                           file, "${renameController.text}.aac");
+                      // records.clear();
+                      var path = file.path;
+                      var lastSeparator =
+                          path.lastIndexOf(Platform.pathSeparator);
+                      var newPath =
+                          "${path.substring(0, lastSeparator + 1)}${renameController.text}.aac";
+                      widget.records[position] = newPath;
+                      print(
+                          "List Path ${widget.records.elementAt(position)}\nNewPath $newPath");
+
+                      setState(() {});
+                      /*getApplicationDocumentsDirectory().then((value) {
+                        appDirectory = value;
+                        appDirectory.list().listen((onData) {
+                          if (onData.path.contains('.aac')) records.add(onData.path);
+                        }).onDone(() {
+                          records = records.reversed.toList();
+                          setState(() {});
+                        });
+                      });*/
                     },
                   ),
                 ],
               );
             },
           );
-          setState(() {});
         },
         icon: const Icon(
           Icons.drive_file_rename_outline_sharp,
@@ -287,7 +306,7 @@ class _RecordListViewState extends State<RecordListView>
         await file.delete();
         print(file);
         setState(() {
-          records.remove(file);
+          widget.records.remove(file);
           widget.records
               .removeAt(index); // Remove the deleted file from the list
         });
@@ -374,8 +393,7 @@ class _RecordListViewState extends State<RecordListView>
         builder: (BuildContext context) {
           return AlertDialog(
             title: const Text('File Name Already Exists'),
-            content: const Text(
-                'The specified file name already exists. Do you want to replace it?'),
+            content: const Text('The specified file name already exists.'),
             actions: [
               // Cancel button
               TextButton(
@@ -388,8 +406,11 @@ class _RecordListViewState extends State<RecordListView>
               TextButton(
                 child: const Text('Replace'),
                 onPressed: () {
-                  replaceFile(file,"${renameController.text}.aac");
+                  replaceFile(file, "${renameController.text}.aac");
                   Navigator.of(context).pop(file);
+                  setState(() {
+
+                  });
                 },
               ),
             ],
@@ -489,7 +510,7 @@ class _RecordListViewState extends State<RecordListView>
                                     onDoubleTap: () {},
                                     child: noiseMeasureFloatingIcon(),
                                   ),
-                                  renameIcon(context, file),
+                                  renameIcon(context, file, i),
                                 ],
                               ),
                               Container(

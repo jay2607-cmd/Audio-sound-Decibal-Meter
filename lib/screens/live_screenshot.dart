@@ -6,19 +6,42 @@ import 'package:flutter/material.dart';
 import 'package:jay_sound_meter/screens/screenshot_preview.dart';
 import 'package:path_provider/path_provider.dart';
 
-class ImageListScreen extends StatefulWidget {
+class ImageListScreen extends StatefulWidget{
   @override
   _ImageListScreenState createState() => _ImageListScreenState();
 }
 
-class _ImageListScreenState extends State<ImageListScreen> {
+class _ImageListScreenState extends State<ImageListScreen> with WidgetsBindingObserver{
   late List<File> imageFiles;
   late File file;
+
   @override
   void initState() {
     super.initState();
     loadImages();
+    print("initState");
+    WidgetsBinding.instance.addObserver(this);
   }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // print("didChangeAppLifecycleState");
+    if(state == AppLifecycleState.resumed){
+      // user returned to our app
+      print("resumed");
+    }else if(state == AppLifecycleState.inactive){
+      // app is inactive
+      print("inactive");
+    }else if(state == AppLifecycleState.paused){
+      // user is about quit our app temporally
+      print("paused");
+    }else if(state == AppLifecycleState.detached){
+      print("suspending");
+      // app suspended (not used in iOS)
+    }
+  }
+
+
 
   Future<void> loadImages() async {
     final directory = await getExternalStorageDirectory();
@@ -52,8 +75,15 @@ class _ImageListScreenState extends State<ImageListScreen> {
           return GestureDetector(
             onTap: () {
               print("${index}");
-              Navigator.push(context, MaterialPageRoute(builder: (context) =>
-                  ScreenshotPreview(filePath: imageFiles[index].path,file: imageFiles[index],)));
+              Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => ScreenshotPreview(
+                            filePath: imageFiles[index].path,
+                            file: imageFiles[index],
+                            imageFiles: imageFiles,
+                            index: index,
+                          )));
             },
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -71,4 +101,13 @@ class _ImageListScreenState extends State<ImageListScreen> {
       ),
     );
   }
+
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    print("dispose");
+    super.dispose();
+  }
+
 }
