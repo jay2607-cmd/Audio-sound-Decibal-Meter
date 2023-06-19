@@ -43,6 +43,39 @@ class _RecorderHomeViewState extends State<RecorderHomeView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        actions: [
+          IconButton(
+              icon: Icon(Icons.delete_forever),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: const Text('Warning!',
+                          style: TextStyle(color: Colors.red)),
+                      content:
+                          const Text('Do you really want to delete all files!'),
+                      actions: [
+                        TextButton(
+                          child: const Text('Cancel'),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                        ),
+                        TextButton(
+                          child: Text('OK'),
+                          onPressed: () {
+                            deleteAllFilesInFolder();
+                            Navigator.pop(context);
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                );
+                setState(() {});
+              }),
+        ],
         title: Text(widget._title),
         centerTitle: true,
       ),
@@ -75,5 +108,43 @@ class _RecorderHomeViewState extends State<RecorderHomeView> {
       records = records.reversed.toList();
       setState(() {});
     });
+  }
+
+  Future<void> deleteAllFiles(File file) async {
+    try {
+      if (await file.exists()) {
+        await file.delete();
+        print(file);
+        setState(() {
+          records.remove(file);
+          records.removeRange(
+              0, (records.length - 1)); // Remove the deleted file from the list
+        });
+      }
+    } catch (e) {
+      print(e);
+    }
+    setState(() {});
+  }
+
+  Future<void> deleteAllFilesInFolder() async {
+    String folderPath = "/data/user/0/com.example.jay_sound_meter/app_flutter/";
+    Directory folder = Directory(folderPath);
+    if (await folder.exists()) {
+      List<FileSystemEntity> entities = folder.listSync();
+      for (FileSystemEntity entity in entities) {
+        if (entity is File) {
+          await entity.delete();
+          print('Deleted file: ${entity.path}');
+        }
+      }
+      setState(() {
+        records.removeRange(
+            0, records.length); // Clear the file list after deletion
+      });
+      print('All files in folder deleted successfully');
+    } else {
+      print('Folder does not exist');
+    }
   }
 }

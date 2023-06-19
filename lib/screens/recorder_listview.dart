@@ -8,7 +8,6 @@ import 'package:jay_sound_meter/logic/dB_meter.dart';
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:noise_meter/noise_meter.dart';
-import 'package:path_provider/path_provider.dart';
 
 class RecordListView extends StatefulWidget {
   final List<String> records;
@@ -41,7 +40,7 @@ class _RecordListViewState extends State<RecordListView>
   double maxDB = 0;
   double? meanDB;
 
-  late final Directory appDirectory;
+  // late final Directory appDirectory;
 
   // List<String> widget.records;
   late int _totalDuration;
@@ -140,7 +139,7 @@ class _RecordListViewState extends State<RecordListView>
               return AlertDialog(
                 title:
                     const Text('Rename!', style: TextStyle(color: Colors.blue)),
-                content: const Text('Are you really want to rename this file!'),
+                content: const Text('Do you really want to rename this file!'),
                 actions: [
                   TextField(
                     decoration: InputDecoration(
@@ -239,7 +238,7 @@ class _RecordListViewState extends State<RecordListView>
               return AlertDialog(
                 title:
                     const Text('Warning!', style: TextStyle(color: Colors.red)),
-                content: const Text('Are you really want to delete this file!'),
+                content: const Text('Do you really want to delete this file!'),
                 actions: [
                   TextButton(
                     child: Text('Cancel'),
@@ -251,6 +250,7 @@ class _RecordListViewState extends State<RecordListView>
                     child: Text('OK'),
                     onPressed: () {
                       deleteFile(File(widget.records.elementAt(i)), i);
+                      // deleteAllFilesInFolder();
                       Navigator.pop(context);
                     },
                   ),
@@ -312,7 +312,7 @@ class _RecordListViewState extends State<RecordListView>
         });
       }
     } catch (e) {
-      // Error in getting access to the file.
+      print(e);
     }
     setState(() {});
   }
@@ -408,9 +408,7 @@ class _RecordListViewState extends State<RecordListView>
                 onPressed: () {
                   replaceFile(file, "${renameController.text}.aac");
                   Navigator.of(context).pop(file);
-                  setState(() {
-
-                  });
+                  setState(() {});
                 },
               ),
             ],
