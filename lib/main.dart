@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -52,12 +50,11 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute: '/',
       title: "Jay's dB Meter",
-      routes: {
-        '/': (context) => HomeScreen(cameras: cameras, logError: logError),
-        '/settings': (context) => const Settings(),
-      },
+      home: HomeScreen(
+        cameras: cameras,
+        logError: logError,
+      ),
     );
   }
 }

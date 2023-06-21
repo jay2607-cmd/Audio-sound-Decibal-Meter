@@ -15,7 +15,6 @@ import 'package:noise_meter/noise_meter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_player/video_player.dart';
 
-import 'camera_video_noise_measure.dart';
 
 class CameraExampleHome extends StatefulWidget {
   final List<CameraDescription> cameras;

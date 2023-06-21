@@ -8,7 +8,6 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 import '../screens/save_main.dart';
 import 'dB_Chart.dart';
 import 'dB_meter.dart';
-import 'dart:math';
 
 class NoiseApp extends StatefulWidget {
   const NoiseApp({super.key});
@@ -208,14 +207,6 @@ class NoiseAppState extends State<NoiseApp> with WidgetsBindingObserver {
                 style:
                     const TextStyle(fontWeight: FontWeight.w300, fontSize: 14),
               ),
-              // const SizedBox(
-              //   width: 15,
-              // ),
-              // Text(
-              //   "${dbValueCount.maximum()}",
-              //   style:
-              //       const TextStyle(fontWeight: FontWeight.w300, fontSize: 14),
-              // ),
             ],
           ),
 

@@ -13,15 +13,13 @@ enum DataSourceType {
   file,
 }
 
-late List<VideoPlayerController> _videoPlayerControllers;
-late List<ChewieController> _chewieControllers;
 
 void main() {
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitDown,
     DeviceOrientation.portraitUp,
   ]);
-  
+
 }
 
 // root widget
@@ -123,7 +121,6 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
           //   height: 24,
           // ),
 
-
           SelectVideo(),
 
         ],
@@ -206,11 +203,15 @@ class VideoPlayerViewState extends State<VideoPlayerView>
     }
   }
 
+  late List<VideoPlayerController> _videoPlayerControllers;
+  late List<ChewieController> _chewieControllers;
+
 
   @override
   void initState() {
     super.initState();
     noiseMeter = NoiseMeter(onError);
+
     WidgetsBinding.instance.addObserver(this);
     _videoPlayerControllers = [];
     _chewieControllers = [];
@@ -241,15 +242,17 @@ class VideoPlayerViewState extends State<VideoPlayerView>
                 (videoPlayerController.value.duration ==
                     videoPlayerController.value.position)) {
               //checking the duration and position every time
-
+              print("if 1");
               setState(() {
                 start();
               });
             } else {
+              print("else 1");
               stop();
             }
 
             if (videoPlayerController.value.isPlaying) {
+              print("if 2");
               start();
             } else if (!videoPlayerController.value.isPlaying) {
               stop();
@@ -284,6 +287,10 @@ class VideoPlayerViewState extends State<VideoPlayerView>
       videoPlayerController.dispose();
     }
     stop();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
     super.dispose();
   }
 
@@ -297,29 +304,6 @@ class VideoPlayerViewState extends State<VideoPlayerView>
   }
 
   @override
-  // Widget build(BuildContext context) {
-  //   return Column(
-  //     crossAxisAlignment: CrossAxisAlignment.start,
-  //     children: [
-  //       Text(
-  //         widget.dataSourceType.toString().split('.').last.toUpperCase(),
-  //         style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-  //       ),
-  //       const Divider(),
-  //       for (var i = 0; i < widget.files.length; i++)
-  //         if (_videoPlayerControllers[i].value.isInitialized)
-  //           AspectRatio(
-  //             aspectRatio: _videoPlayerControllers[i].value.aspectRatio,
-  //             child: Chewie(
-  //               controller: _chewieControllers[i],
-  //             ),
-  //           )
-  //         else
-  //           // print(_videoPlayerControllers[i].value.isPlaying),
-  //           Text("video value : ${_videoPlayerControllers[i].value.isPlaying}"),
-  //     ],
-  //   );
-  // }
   Widget build(BuildContext context) {
     return Column(
       children: [
@@ -327,6 +311,7 @@ class VideoPlayerViewState extends State<VideoPlayerView>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: buildChildren(),
         ),
+
         dBMeter(maxDB),
       ],
     );

@@ -34,7 +34,7 @@ class _RecordListViewState extends State<RecordListView>
   bool isRenamePressed = false;
 
   // variables for noise recording
-  bool isRecording = false;
+  // bool isRecording = false;
   StreamSubscription<NoiseReading>? noiseSubscription;
   late NoiseMeter noiseMeter;
   double maxDB = 0;
@@ -75,7 +75,7 @@ class _RecordListViewState extends State<RecordListView>
     if (kDebugMode) {
       print(e.toString());
     }
-    isRecording = false;
+    // isRecording = false;
   }
 
   void noiseStart() async {
@@ -196,38 +196,38 @@ class _RecordListViewState extends State<RecordListView>
         ));
   }
 
-  FloatingActionButton noiseMeasureFloatingIcon() {
-    // print("isRecording: ${isRecording}");
-    return FloatingActionButton.extended(
-      shape: const CircleBorder(),
-      elevation: 0,
-      backgroundColor: Colors.blue.shade50,
-      foregroundColor: Colors.blue.shade500,
-      label: const Text(''),
-      // onPressed: isRecording ? noiseStop : noiseStart,
-      onPressed: () {
-        if (isRecording) {
-          isRecording = false;
-
-          noiseStop();
-        } else {
-          isRecording = true;
-          noiseStart();
-        }
-      },
-
-      icon: !isRecording
-          ? const Icon(
-              Icons.record_voice_over_sharp,
-              size: 30,
-            )
-          : const Icon(
-              Icons.stop,
-              size: 30,
-              color: Colors.red,
-            ),
-    );
-  }
+  // FloatingActionButton noiseMeasureFloatingIcon() {
+  //   // print("isRecording: ${isRecording}");
+  //   return FloatingActionButton.extended(
+  //     shape: const CircleBorder(),
+  //     elevation: 0,
+  //     backgroundColor: Colors.blue.shade50,
+  //     foregroundColor: Colors.blue.shade500,
+  //     label: const Text(''),
+  //     // onPressed: isRecording ? noiseStop : noiseStart,
+  //     onPressed: () {
+  //       if (isRecording) {
+  //         isRecording = false;
+  //
+  //         noiseStop();
+  //       } else {
+  //         isRecording = true;
+  //         noiseStart();
+  //       }
+  //     },
+  //
+  //     icon: !isRecording
+  //         ? const Icon(
+  //             Icons.record_voice_over_sharp,
+  //             size: 30,
+  //           )
+  //         : const Icon(
+  //             Icons.stop,
+  //             size: 30,
+  //             color: Colors.red,
+  //           ),
+  //   );
+  // }
 
   IconButton deleteIcon(BuildContext context, int i) {
     return IconButton(
@@ -293,9 +293,19 @@ class _RecordListViewState extends State<RecordListView>
       onPressed: () {
         if (_isPlaying) {
           _onPause();
+          noiseStop();
         } else {
           _onPlay(filePath: widget.records.elementAt(i), index: i);
+          noiseStart();
         }
+
+        // if (isRecording) {
+        //   isRecording = false;
+        //
+        // } else {
+        //   isRecording = true;
+        //
+        // }
       },
     );
   }
@@ -329,7 +339,7 @@ class _RecordListViewState extends State<RecordListView>
       audioPlayer.onPlayerCompletion.listen((_) {
         setState(() {
           _isPlaying = false;
-          isRecording = false;
+          // isRecording = false;
           _completedPercentage = 0.0;
         });
       });
@@ -354,7 +364,7 @@ class _RecordListViewState extends State<RecordListView>
     audioPlayer.stop();
     setState(() {
       _isPlaying = false;
-      isRecording = false;
+      // isRecording = false;
       noiseStop();
       _completedPercentage = 0.0;
     });
@@ -365,7 +375,7 @@ class _RecordListViewState extends State<RecordListView>
     audioPlayer.pause();
     setState(() {
       _isPlaying = false;
-      isRecording = false;
+      // isRecording = false;
       noiseStop();
     });
   }
@@ -455,7 +465,6 @@ class _RecordListViewState extends State<RecordListView>
                   File file = new File(widget.records.elementAt(i));
 
                   String fileName = file.path.split('/').last;
-
                   // print("File Name:${renameController}");
                   return Padding(
                     padding: EdgeInsets.symmetric(vertical: 10),
@@ -504,10 +513,10 @@ class _RecordListViewState extends State<RecordListView>
                                   playPauseIcon(i),
                                   resetIcon(),
                                   deleteIcon(context, i),
-                                  GestureDetector(
-                                    onDoubleTap: () {},
-                                    child: noiseMeasureFloatingIcon(),
-                                  ),
+                                  // GestureDetector(
+                                  //   onDoubleTap: () {},
+                                  //   child: noiseMeasureFloatingIcon(),
+                                  // ),
                                   renameIcon(context, file, i),
                                 ],
                               ),
@@ -518,8 +527,13 @@ class _RecordListViewState extends State<RecordListView>
                                 ),
                                 child: Column(
                                   children: [
-                                    if (_isPlaying)
-                                      dBMeter(maxDB)
+                                    if(_selectedIndex==i)
+                                      if (_isPlaying)
+                                        dBMeter(maxDB)
+                                      else
+                                        const SizedBox(
+                                          height: 0,
+                                        )
                                     else
                                       const SizedBox(
                                         height: 0,
