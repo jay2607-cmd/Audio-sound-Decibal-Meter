@@ -37,22 +37,22 @@ class HomeScreen extends StatelessWidget {
               label: "HISTORY",
               getColor: Colors.blue.shade200,
               icon: Icons.history_sharp),
-          ReusableGridView(
-              className: Settings(),
-              label: "SETTINGS",
-              getColor: Colors.blue.shade300,
-              icon: Icons.settings_sharp),
+          // ReusableGridView(
+          //     className: Settings(),
+          //     label: "SETTINGS",
+          //     getColor: Colors.blue.shade300,
+          //     icon: Icons.settings_sharp),
           ReusableGridView(
               className: RecorderHomeView(
                 title: 'Recorder',
               ),
               label: "RECORDER",
-              getColor: Colors.blue.shade400,
+              getColor: Colors.blue.shade300,
               icon: Icons.record_voice_over_sharp),
           ReusableGridView(
               className: CameraHome(cameras: cameras, logError: logError),
               label: "CAMERA",
-              getColor: Colors.blue.shade500,
+              getColor: Colors.blue.shade400,
               icon: Icons.camera_enhance_sharp),
           // ReusableGridView(
           //     className: NoiseDetector(),

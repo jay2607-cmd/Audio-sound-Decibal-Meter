@@ -16,7 +16,7 @@ class CameraHome extends StatelessWidget{
   Widget build(BuildContext context) {
    return Scaffold(
      appBar: AppBar(
-       title: Text("Noise Detector".toUpperCase()),
+       title: Text("Camera Noise Detector".toUpperCase()),
        centerTitle: true,
      ),
      body: GridView.count(
