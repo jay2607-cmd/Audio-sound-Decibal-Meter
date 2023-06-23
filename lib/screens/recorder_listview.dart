@@ -58,6 +58,7 @@ class _RecordListViewState extends State<RecordListView>
   @override
   void dispose() {
     super.dispose();
+    audioPlayer.stop();
     noiseStop();
   }
 

@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 const kSettingText = TextStyle(
@@ -11,5 +10,10 @@ const kLabelTextStyle = TextStyle(
   color: Color(0xFF8D8E98),
 );
 
+const kBackgroundColor = TextStyle(
+  color: Color(0xffF0F1F2),
+);
+
+const kButtonTextStyle = TextStyle(fontSize: 17,fontWeight: FontWeight.bold);
 
 const Color kContainerColor = Color(0XFF1D1E33);

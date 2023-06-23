@@ -44,6 +44,7 @@ dependencies:
   hive_generator: ^2.0.0
   flutter_sound: ^9.2.13
   permission_handler: ^10.3.0
+  google_fonts:
 #  camera: ^0.10.5+2
 #  keep_screen_on: ^2.1.0
 #  flutter_launcher_icons: ^0.13.1

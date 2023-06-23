@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:jay_sound_meter/boxes/boxes.dart';
 import 'package:jay_sound_meter/database/save_model.dart';
+import 'package:jay_sound_meter/utils/constants.dart';
 import 'package:noise_meter/noise_meter.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import '../screens/save_main.dart';
@@ -141,85 +142,107 @@ class NoiseAppState extends State<NoiseApp> with WidgetsBindingObserver {
     if (chartData.length >= 100) {
       chartData.removeAt(0);
     }
-    return Scaffold(
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          GestureDetector(
-            onDoubleTap: () {},
-            child: FloatingActionButton.extended(
-              label: Text(isRecording ? 'Stop' : 'Start'),
-              onPressed: isRecording ? stop : start,
-              icon: !isRecording
-                  ? const Icon(Icons.not_started_sharp)
-                  : const Icon(Icons.stop_circle_sharp),
-              backgroundColor: isRecording ? Colors.red : Colors.green,
-            ),
-          ),
-          const SizedBox(
-            width: 15,
-          ),
-          FloatingActionButton.extended(
-            label: const Text("Save"),
-            onPressed: () {
-              final data = SaveModel(
-                  noiseData: maxDB,
-                  date: date,
-                  time: time,
-                  area: selectedValue.toString());
-
-              final box = Boxes.getData();
-
-              // forcefully added typecast
-              box.add(data);
-
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) =>
-                        SaveMain(maxDB, date, time, selectedValue.toString())),
-              );
-            },
-          ),
-        ],
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: buildDropdownButtonFormField(),
-          ),
-
-          Expanded(
-              // Radial Gauge
-              child: dBMeter(maxDB)),
-
-          // depicts Mean dB
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                meanDB != null
-                    ? 'Average: ${meanDB!.toStringAsFixed(2)} dB'
-                    : 'Awaiting data',
-                style:
-                    const TextStyle(fontWeight: FontWeight.w300, fontSize: 14),
+    return Container(
+      child: Scaffold(
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+        floatingActionButton: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            GestureDetector(
+              onDoubleTap: () {},
+              child: Container(
+                height: 50,
+                width: 175,
+                child: FloatingActionButton.extended(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(5.0))),
+                  label: Text(
+                    isRecording ? 'STOP' : 'START',
+                    style: kButtonTextStyle,
+                  ),
+                  onPressed: isRecording ? stop : start,
+                  // icon: !isRecording
+                  //     ? const Icon(Icons.not_started_sharp)
+                  //     : const Icon(Icons.stop_circle_sharp),
+                  backgroundColor:
+                      isRecording ? Color(0xFFFF5959) : Color(0xFF1C95FF),
+                ),
               ),
-            ],
-          ),
+            ),
+            const SizedBox(
+              width: 15,
+            ),
+            Container(
+              height: 50,
+              width: 175,
+              child: FloatingActionButton.extended(
+                label: const Text(
+                  "SAVE",
+                  style: kButtonTextStyle,
+                ),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(5.0))),
+                backgroundColor: Color(0xFF33CC66),
+                onPressed: () {
+                  final data = SaveModel(
+                      noiseData: maxDB,
+                      date: date,
+                      time: time,
+                      area: selectedValue.toString());
 
-          // Chart according the noise meter
-          Expanded(
-            child: DBChart(chartData: chartData),
-          ),
+                  final box = Boxes.getData();
 
-          // space between chart and floatingActionButton
-          const SizedBox(
-            height: 68,
-          ),
-        ],
+                  // forcefully added typecast
+                  box.add(data);
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => SaveMain(
+                            maxDB, date, time, selectedValue.toString())),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: buildDropdownButtonFormField(),
+            ),
+
+            Expanded(
+                // Radial Gauge
+                child: dBMeter(maxDB)),
+
+            // depicts Mean dB
+            // Row(
+            //   mainAxisAlignment: MainAxisAlignment.center,
+            //   children: [
+            //     Text(
+            //       meanDB != null
+            //           ? 'Average: ${meanDB!.toStringAsFixed(2)} dB'
+            //           : 'Awaiting data',
+            //       style:
+            //           const TextStyle(fontWeight: FontWeight.w300, fontSize: 14),
+            //     ),
+            //   ],
+            // ),
+
+            // Chart according the noise meter
+            Expanded(
+              child: DBChart(chartData: chartData),
+            ),
+
+            // space between chart and floatingActionButton
+            const SizedBox(
+              height: 68,
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -4,8 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
 import 'package:jay_sound_meter/database/save_model.dart';
 import 'package:jay_sound_meter/screens/home_screen.dart';
-import 'package:jay_sound_meter/screens/settings.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 List<CameraDescription> cameras = <CameraDescription>[];
 
@@ -51,6 +51,12 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: "Jay's dB Meter",
+      theme: ThemeData(
+        // Set the default text style to Montserrat
+        textTheme: GoogleFonts.montserratTextTheme(
+          Theme.of(context).textTheme,
+        ),
+      ),
       home: HomeScreen(
         cameras: cameras,
         logError: logError,
