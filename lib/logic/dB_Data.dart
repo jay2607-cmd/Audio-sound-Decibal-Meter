@@ -144,6 +144,30 @@ class NoiseAppState extends State<NoiseApp> with WidgetsBindingObserver {
     }
     return Container(
       child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: Padding(
+            padding: const EdgeInsets.only(left: 16.0),
+            child: IconButton(
+              icon: Image.asset(
+                'assets/images/back.png',
+                height: 28,
+                width: 28,
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+          ),
+          title: Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: Text(
+              "Noise Detector",
+              style: kAppbarStyle,
+            ),
+          ),
+        ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
         floatingActionButton: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -161,9 +185,6 @@ class NoiseAppState extends State<NoiseApp> with WidgetsBindingObserver {
                     style: kButtonTextStyle,
                   ),
                   onPressed: isRecording ? stop : start,
-                  // icon: !isRecording
-                  //     ? const Icon(Icons.not_started_sharp)
-                  //     : const Icon(Icons.stop_circle_sharp),
                   backgroundColor:
                       isRecording ? Color(0xFFFF5959) : Color(0xFF1C95FF),
                 ),
@@ -210,13 +231,16 @@ class NoiseAppState extends State<NoiseApp> with WidgetsBindingObserver {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: buildDropdownButtonFormField(),
+              padding: const EdgeInsets.only(
+                  left: 16.0, right: 16, top: 6, bottom: 6),
+              child: Container(
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(40),
+                      color: Color(0xFFF6F7F8)),
+                  child: buildDropdownButtonFormField()),
             ),
 
-            Expanded(
-                // Radial Gauge
-                child: dBMeter(maxDB)),
+            Container(height: 350, child: dBMeter(maxDB)),
 
             // depicts Mean dB
             // Row(
@@ -233,9 +257,7 @@ class NoiseAppState extends State<NoiseApp> with WidgetsBindingObserver {
             // ),
 
             // Chart according the noise meter
-            Expanded(
-              child: DBChart(chartData: chartData),
-            ),
+            Expanded(child: DBChart(chartData: chartData)),
 
             // space between chart and floatingActionButton
             const SizedBox(
@@ -247,31 +269,33 @@ class NoiseAppState extends State<NoiseApp> with WidgetsBindingObserver {
     );
   }
 
-  DropdownButtonFormField<String> buildDropdownButtonFormField() {
-    return DropdownButtonFormField(
-      value: selectedValue,
-      items: areaTypeList
-          .map((e) => DropdownMenuItem(
-                value: e,
-                child: Text(e),
-              ))
-          .toList(),
-      onChanged: (val) {
-        setState(
-          () {
-            selectedValue = val as String;
-          },
-        );
-      },
-      icon: Icon(Icons.arrow_drop_down_circle, color: Colors.purple.shade400),
-      dropdownColor: Colors.deepPurple.shade50,
-      decoration: InputDecoration(
-        labelText: "Choose Area",
-        prefixIcon: Icon(
-          Icons.accessibility_new_rounded,
-          color: Colors.purple.shade500,
-        ),
-        border: UnderlineInputBorder(),
+  Padding buildDropdownButtonFormField() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6),
+      child: DropdownButtonHideUnderline(
+         child: DropdownButton(
+           isExpanded: true,
+           value: selectedValue, style: TextStyle(),
+           items: areaTypeList
+               .map((e) => DropdownMenuItem(
+             value: e,
+             child: Text(e),
+           ))
+               .toList(),
+           onChanged: (val) {
+             setState(
+                   () {
+                 selectedValue = val as String;
+               },
+             );
+           },
+           icon: Image.asset("assets/images/down.png", height: 25, width: 25,),
+      ),
+        // dropdownColor: Color(0xFFF6F7F8),
+        // decoration: InputDecoration(
+        //     // labelText: "Choose Area",
+        //     // border: UnderlineInputBorder(),
+        //     ),
       ),
     );
   }

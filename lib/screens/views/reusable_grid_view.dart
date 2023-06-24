@@ -26,31 +26,55 @@ class ReusableGridView extends StatelessWidget {
       },
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(8),
           color: const Color(0xFFF8F9F9),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        padding: const EdgeInsets.only(
+          left: 10,
+          right: 10,
+          top: 10,
+          bottom: 10,
+        ),
+        child: Stack(
+          // mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.start,
+              // mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                Image.asset(imgPath,height: 75, width: 75, fit: BoxFit.contain,)
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(label1!),
-                    SizedBox(height: 10,),
-                    Text(label2!,style: TextStyle(fontWeight: FontWeight.bold),),
-                  ],
+                Padding(
+                  padding: const EdgeInsets.only(top: 2.0),
+                  child: Image.asset(
+                    imgPath,
+                    height: 70,
+                    width: 70,
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ],
+            ),
+            SizedBox.shrink(),
+            Padding(
+              padding: const EdgeInsets.only(top: 50.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  // alignment: Alignment.center,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(label1!),
+                      SizedBox(
+                        height: 3,
+                      ),
+                      Text(
+                        label2!,
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ],
         ),
