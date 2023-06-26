@@ -4,6 +4,8 @@ import 'package:jay_sound_meter/screens/recorder_listview.dart';
 import 'package:jay_sound_meter/screens/recorder_view.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../utils/constants.dart';
+
 class RecorderHomeView extends StatefulWidget {
   final String _title;
 
@@ -44,41 +46,65 @@ class _RecorderHomeViewState extends State<RecorderHomeView> {
     return Scaffold(
       appBar: AppBar(
         actions: [
-          IconButton(
-              icon: Icon(Icons.delete_forever),
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: const Text('Warning!',
-                          style: TextStyle(color: Colors.red)),
-                      content:
-                          const Text('Do you really want to delete all files!'),
-                      actions: [
-                        TextButton(
-                          child: const Text('Cancel'),
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                        ),
-                        TextButton(
-                          child: Text('OK'),
-                          onPressed: () {
-                            deleteAllFilesInFolder();
-                            Navigator.pop(context);
-                          },
-                        ),
-                      ],
-                    );
-                  },
-                );
-                setState(() {});
-              }),
+          Padding(
+            padding: const EdgeInsets.only(right: 12.0),
+            child: IconButton(
+                icon: Image.asset("assets/images/d1.png"),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text('Warning!',
+                            style: TextStyle(color: Colors.red)),
+                        content:
+                        const Text('Do you really want to delete all files!'),
+                        actions: [
+                          TextButton(
+                            child: const Text('Cancel'),
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                          ),
+                          TextButton(
+                            child: Text('OK'),
+                            onPressed: () {
+                              deleteAllFilesInFolder();
+                              Navigator.pop(context);
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                  setState(() {});
+                }),
+          ),
         ],
-        title: Text(widget._title),
-        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16.0),
+          child: IconButton(
+            icon: Image.asset(
+              'assets/images/back.png',
+              height: 28,
+              width: 28,
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+        ),
+        title: const Padding(
+          padding: EdgeInsets.only(left: 8.0),
+          child: Text(
+            "Voice Recorder",
+            style: kAppbarStyle,
+          ),
+        ),
       ),
+
       body: Column(
         children: [
           Expanded(

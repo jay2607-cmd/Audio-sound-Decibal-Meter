@@ -15,6 +15,8 @@ import 'package:noise_meter/noise_meter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:video_player/video_player.dart';
 
+import '../utils/constants.dart';
+
 
 class CameraExampleHome extends StatefulWidget {
   final List<CameraDescription> cameras;
@@ -199,9 +201,40 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
       key: _key,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Camera'),
-          centerTitle: true,
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: IconButton(onPressed: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => ImageListScreen()));}, icon: Image.asset("assets/images/history.png")),
+            )
+          ],
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: Padding(
+            padding: const EdgeInsets.only(left: 16.0),
+            child: IconButton(
+              icon: Image.asset(
+                'assets/images/back.png',
+                height: 28,
+                width: 28,
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+          ),
+          title: Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: Text(
+              "Camera",
+              style: kAppbarStyle,
+            ),
+          ),
         ),
+
         body: Column(
           children: <Widget>[
             Expanded(
@@ -248,14 +281,6 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
                 SizedBox(
                   width: 25,
                 ),
-                ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => ImageListScreen()));
-                    },
-                    child: const Text("History")),
               ],
             ),
 

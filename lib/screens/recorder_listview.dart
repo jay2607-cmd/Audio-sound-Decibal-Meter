@@ -9,6 +9,8 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:noise_meter/noise_meter.dart';
 
+import '../utils/constants.dart';
+
 class RecordListView extends StatefulWidget {
   final List<String> records;
   final Directory appDirectory;
@@ -119,7 +121,7 @@ class _RecordListViewState extends State<RecordListView>
             children: [
               Text('Date: $date', style: TextStyle(fontSize: 16)),
 
-              // SizedBox(height: 16),
+              // SizedBox(height: 2),
               Text('Time: $time', style: TextStyle(fontSize: 16)),
               // Text(time, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             ],
@@ -133,49 +135,50 @@ class _RecordListViewState extends State<RecordListView>
 
   IconButton renameIcon(BuildContext context, File file, int position) {
     return IconButton(
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title:
-                    const Text('Rename!', style: TextStyle(color: Colors.blue)),
-                content: const Text('Do you really want to rename this file!'),
-                actions: [
-                  TextField(
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.blue),
-                          borderRadius: BorderRadius.circular(10)),
-                      hintText: 'Enter New Name',
-                      helperText: 'Keep it meaningful',
-                      labelText: 'Rename',
-                      prefixIcon: const Icon(
-                        Icons.drive_file_rename_outline_rounded,
-                        color: Colors.blue,
-                      ),
+      iconSize: 43,
+      onPressed: () {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title:
+                  const Text('Rename!', style: TextStyle(color: Colors.blue)),
+              content: const Text('Do you really want to rename this file!'),
+              actions: [
+                TextField(
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.blue),
+                        borderRadius: BorderRadius.circular(10)),
+                    hintText: 'Enter New Name',
+                    helperText: 'Keep it meaningful',
+                    labelText: 'Rename',
+                    prefixIcon: const Icon(
+                      Icons.drive_file_rename_outline_rounded,
+                      color: Colors.blue,
                     ),
-                    controller: renameController,
                   ),
-                  TextButton(
-                    child: Text('Rename'),
-                    onPressed: () async {
-                      Navigator.pop(context);
+                  controller: renameController,
+                ),
+                TextButton(
+                  child: Text('Rename'),
+                  onPressed: () async {
+                    Navigator.pop(context);
 
-                      await changeFileNameOnly(
-                          file, "${renameController.text}.aac");
-                      // records.clear();
-                      var path = file.path;
-                      var lastSeparator =
-                          path.lastIndexOf(Platform.pathSeparator);
-                      var newPath =
-                          "${path.substring(0, lastSeparator + 1)}${renameController.text}.aac";
-                      widget.records[position] = newPath;
-                      print(
-                          "List Path ${widget.records.elementAt(position)}\nNewPath $newPath");
+                    await changeFileNameOnly(
+                        file, "${renameController.text}.aac");
+                    // records.clear();
+                    var path = file.path;
+                    var lastSeparator =
+                        path.lastIndexOf(Platform.pathSeparator);
+                    var newPath =
+                        "${path.substring(0, lastSeparator + 1)}${renameController.text}.aac";
+                    widget.records[position] = newPath;
+                    print(
+                        "List Path ${widget.records.elementAt(position)}\nNewPath $newPath");
 
-                      setState(() {});
-                      /*getApplicationDocumentsDirectory().then((value) {
+                    setState(() {});
+                    /*getApplicationDocumentsDirectory().then((value) {
                         appDirectory = value;
                         appDirectory.list().listen((onData) {
                           if (onData.path.contains('.aac')) records.add(onData.path);
@@ -184,17 +187,15 @@ class _RecordListViewState extends State<RecordListView>
                           setState(() {});
                         });
                       });*/
-                    },
-                  ),
-                ],
-              );
-            },
-          );
-        },
-        icon: const Icon(
-          Icons.drive_file_rename_outline_sharp,
-          size: 30,
-        ));
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+      icon: Image.asset("assets/images/edit.png"),
+    );
   }
 
   // FloatingActionButton noiseMeasureFloatingIcon() {
@@ -232,6 +233,7 @@ class _RecordListViewState extends State<RecordListView>
 
   IconButton deleteIcon(BuildContext context, int i) {
     return IconButton(
+        iconSize: 43,
         onPressed: () {
           showDialog(
             context: context,
@@ -262,35 +264,27 @@ class _RecordListViewState extends State<RecordListView>
 
           setState(() {});
         },
-        icon: Icon(
-          Icons.delete,
-          size: 30,
-          color: Colors.red.shade900,
-        ));
+        icon: Image.asset("assets/images/delete.png"));
   }
 
   IconButton resetIcon() {
     return IconButton(
-        onPressed: () {
-          _onStop();
-        },
-        icon: const Icon(
-          Icons.stop_circle_rounded,
-          size: 30,
-          color: Colors.red,
-        ));
+      iconSize: 43,
+      onPressed: () {
+        _onStop();
+      },
+      icon: Image.asset("assets/images/stop.png"),
+    );
   }
 
   IconButton playPauseIcon(int i) {
     return IconButton(
+      iconSize: 43,
       icon: _selectedIndex == i
           ? _isPlaying
-              ? const Icon(
-                  Icons.pause,
-                  size: 30,
-                )
-              : Icon(Icons.play_arrow, size: 30)
-          : Icon(Icons.play_arrow, size: 30),
+              ? Image.asset("assets/images/pause.png")
+              : Image.asset("assets/images/play.png")
+          : Image.asset("assets/images/play.png"),
       onPressed: () {
         if (_isPlaying) {
           _onPause();
@@ -445,6 +439,8 @@ class _RecordListViewState extends State<RecordListView>
     }
   }
 
+  var isExpanded = false;
+
   @override
   Widget build(BuildContext context) {
     return widget.records.isEmpty
@@ -457,95 +453,124 @@ class _RecordListViewState extends State<RecordListView>
         : Padding(
             padding: const EdgeInsets.all(16.0),
             child: Container(
-              color: Colors.blue.shade50,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+              ),
               child: ListView.builder(
                 itemCount: widget.records.length,
                 shrinkWrap: true,
                 reverse: false,
                 itemBuilder: (BuildContext context, int i) {
-                  File file = new File(widget.records.elementAt(i));
+                  File file = File(widget.records.elementAt(i));
 
                   String fileName = file.path.split('/').last;
                   // print("File Name:${renameController}");
                   return Padding(
-                    padding: EdgeInsets.symmetric(vertical: 10),
-                    child: ExpansionTile(
-                      // this new index is for getting new recording first
-                      // title: Text('New recoding ${widget.records.length - i}'),
-                      title: Text(fileName),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          dateAndTime(i),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 8.0, horizontal: 8),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: kListCardBackGroundColor,
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.5), // Shadow color
+                            spreadRadius: 1, // Spread radius
+                            blurRadius: 2.5, // Blur radius
+                            offset: Offset(0, 2), // Offset in x and y direction
+                          ),
                         ],
                       ),
-
-                      onExpansionChanged: ((newState) {
-                        if (newState) {
-                          setState(
-                            () {
-                              _selectedIndex = i;
-                            },
-                          );
-                        }
-                      }),
-                      children: [
-                        // dropDown container
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                      child: Padding(
+                        padding: EdgeInsets.only(bottom: 8, left: 8, top: 8),
+                        child: ExpansionTile(
+                          // this new index is for getting new recording first
+                          // title: Text('New recoding ${widget.records.length - i}'),
+                          title: Text(
+                            fileName,
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              LinearProgressIndicator(
-                                minHeight: 5,
-                                backgroundColor: Colors.black,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.green.shade500),
-                                value: _selectedIndex == i
-                                    ? _completedPercentage
-                                    : 0,
-                              ),
-                              const SizedBox(
-                                height: 15,
-                              ),
-                              Row(
+                              SizedBox(height: 2),
+                              dateAndTime(i),
+                            ],
+                          ),
+                          trailing: isExpanded
+
+                              ? Image.asset(
+                                  "assets/images/up.png",
+                                  width: 23,
+                                )
+                              : Image.asset(
+                                  "assets/images/down.png",
+                                  width: 23,
+                                ),
+
+                          onExpansionChanged: ((newState) {
+                            if (newState) {
+                              setState(
+                                () {
+                                  _selectedIndex = i;
+                                },
+                              );
+                            }
+                          }),
+
+
+                          children: [
+                            // dropDown container
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  playPauseIcon(i),
-                                  resetIcon(),
-                                  deleteIcon(context, i),
-                                  // GestureDetector(
-                                  //   onDoubleTap: () {},
-                                  //   child: noiseMeasureFloatingIcon(),
-                                  // ),
-                                  renameIcon(context, file, i),
-                                ],
-                              ),
-                              Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(20),
-                                  color: Colors.white,
-                                ),
-                                child: Column(
-                                  children: [
-                                    if(_selectedIndex==i)
-                                      if (_isPlaying)
-                                        dBMeter(maxDB)
+                                  LinearProgressIndicator(
+                                    semanticsLabel: fileName,
+                                    minHeight: 6,
+                                    backgroundColor: Color(0xFFCED3D9),
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        Color(0xFF1C95FF)),
+                                    value: _selectedIndex == i
+                                        ? _completedPercentage
+                                        : 0,
+                                  ),
+                                  const SizedBox(
+                                    height: 15,
+                                  ),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceAround,
+                                    mainAxisSize: MainAxisSize.max,
+                                    children: [
+                                      playPauseIcon(i),
+                                      resetIcon(),
+                                      deleteIcon(context, i),
+                                      renameIcon(context, file, i),
+                                    ],
+                                  ),
+                                  Column(
+                                    children: [
+                                      if (_selectedIndex == i)
+                                        if (_isPlaying)
+                                          dBMeter(maxDB)
+                                        else
+                                          const SizedBox(
+                                            height: 0,
+                                          )
                                       else
                                         const SizedBox(
                                           height: 0,
-                                        )
-                                    else
-                                      const SizedBox(
-                                        height: 0,
-                                      ),
-                                  ],
-                                ),
-                              )
-                            ],
-                          ),
+                                        ),
+                                    ],
+                                  )
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   );
                 },

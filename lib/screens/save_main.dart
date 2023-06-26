@@ -4,6 +4,8 @@ import 'package:jay_sound_meter/database/save_model.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:jay_sound_meter/screens/views/history_meter.dart';
 
+import '../utils/constants.dart';
+
 class SaveMain extends StatefulWidget {
   double? dBNoise;
   String? date, time, area;
@@ -31,8 +33,28 @@ class SaveMainState extends State<SaveMain> {
     print(dBNoise);
     return Scaffold(
       appBar: AppBar(
-        title: Text("Saved Noise"),
-        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16.0),
+          child: IconButton(
+            icon: Image.asset(
+              'assets/images/back.png',
+              height: 28,
+              width: 28,
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+        ),
+        title: const Padding(
+          padding: EdgeInsets.only(left: 8.0),
+          child: Text(
+            "Saved Noise",
+            style: kAppbarStyle,
+          ),
+        ),
       ),
       body: ValueListenableBuilder<Box<SaveModel>>(
         valueListenable: Boxes.getData().listenable(),
@@ -58,71 +80,112 @@ class SaveMainState extends State<SaveMain> {
                     ),
                   );
                 },
-                child: Card(
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(
+                        20), // Set the desired border radiusSet the desired background color
+                  ),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 15, horizontal: 10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Row(
+                    // outside card padding
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
+                    child: Card(
+                      // elevation: 0,
+                      color: Color(0xffF6F7F8),
+                      child: Padding(
+                        //content padding
+                        padding: const EdgeInsets.only(
+                            top: 10, bottom: 12, left: 16, right: 8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              "Noise : ${data[reversedIndex].noiseData.toStringAsFixed(2)} dB",
-                              style: const TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.w500),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      "Noise Detected :",
+                                      style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    Text(
+                                      " ${data[reversedIndex].noiseData.toStringAsFixed(2)} dB",
+                                      style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                          color: Color(0xFF1C95FF)),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(
+                                  height: 4,
+                                ),
+                                Text(
+                                    "Area  :  ${data[reversedIndex].area.toString()}",
+                                    style: const TextStyle(fontSize: 13)),
+                                SizedBox(
+                                  height: 4,
+                                ),
+                                Text(
+                                    "Date  :  ${data[reversedIndex].date.toString()}",
+                                    style: const TextStyle(fontSize: 13)),
+                                SizedBox(
+                                  height: 4,
+                                ),
+                                Text(
+                                    "Time  :  ${data[reversedIndex].time.toString()}",
+                                    style: const TextStyle(fontSize: 13)),
+                              ],
                             ),
-                            const Spacer(),
-                            InkWell(
-                              child: const Icon(
-                                Icons.delete,
-                                color: Colors.redAccent,
-                              ),
-                              onTap: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      title: const Text('Warning!',
-                                          style: TextStyle(color: Colors.red)),
-                                      content: const Text(
-                                          'Are you really want to delete this Noise!'),
-                                      actions: [
-                                        TextButton(
-                                          child: Text('Cancel'),
-                                          onPressed: () {
-                                            Navigator.pop(context);
-                                          },
-                                        ),
-                                        TextButton(
-                                          child: Text('OK'),
-                                          onPressed: () {
-                                            delete(data[reversedIndex]);
+                            Column(
+                              // mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                IconButton(
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return AlertDialog(
+                                          title: const Text('Warning!',
+                                              style:
+                                                  TextStyle(color: Colors.red)),
+                                          content: const Text(
+                                              'Do you really want to delete this Noise!'),
+                                          actions: [
+                                            TextButton(
+                                              child: Text('Cancel'),
+                                              onPressed: () {
+                                                Navigator.pop(context);
+                                              },
+                                            ),
+                                            TextButton(
+                                              child: Text('OK'),
+                                              onPressed: () {
+                                                delete(data[reversedIndex]);
 
-                                            Navigator.pop(context);
-                                          },
-                                        ),
-                                      ],
+                                                Navigator.pop(context);
+                                              },
+                                            ),
+                                          ],
+                                        );
+                                      },
                                     );
-                                  },
-                                );
 
-                                setState(() {});
-                              },
-                            ),
-                            const SizedBox(
-                              width: 15,
+                                    setState(() {});
+                                  },
+                                  icon: Image.asset(
+                                    "assets/images/d2.png",
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                        Text("Area : ${data[reversedIndex].area.toString()}",
-                            style: const TextStyle(fontSize: 13)),
-                        Text("Date : ${data[reversedIndex].date.toString()}",
-                            style: const TextStyle(fontSize: 13)),
-                        Text("Time : ${data[reversedIndex].time.toString()}",
-                            style: const TextStyle(fontSize: 13)),
-                      ],
+                      ),
                     ),
                   ),
                 ),

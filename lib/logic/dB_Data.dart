@@ -178,6 +178,7 @@ class NoiseAppState extends State<NoiseApp> with WidgetsBindingObserver {
                 height: 50,
                 width: 175,
                 child: FloatingActionButton.extended(
+                  heroTag: isRecording ? 'STOP' : 'START',
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.all(Radius.circular(5.0))),
                   label: Text(
@@ -201,6 +202,7 @@ class NoiseAppState extends State<NoiseApp> with WidgetsBindingObserver {
                   "SAVE",
                   style: kButtonTextStyle,
                 ),
+                heroTag: "SAVE",
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.all(Radius.circular(5.0))),
                 backgroundColor: Color(0xFF33CC66),
@@ -273,24 +275,30 @@ class NoiseAppState extends State<NoiseApp> with WidgetsBindingObserver {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6),
       child: DropdownButtonHideUnderline(
-         child: DropdownButton(
-           isExpanded: true,
-           value: selectedValue, style: TextStyle(),
-           items: areaTypeList
-               .map((e) => DropdownMenuItem(
-             value: e,
-             child: Text(e),
-           ))
-               .toList(),
-           onChanged: (val) {
-             setState(
-                   () {
-                 selectedValue = val as String;
-               },
-             );
-           },
-           icon: Image.asset("assets/images/down.png", height: 25, width: 25,),
-      ),
+        child: DropdownButton(
+          isExpanded: true,
+          value: selectedValue,
+          style: TextStyle(fontFamily: 'Montserrat', color: Colors.black),
+          items: areaTypeList
+              .map((e) => DropdownMenuItem(
+                    value: e,
+                    child: Text(e),
+                  ))
+              .toList(),
+          onChanged: (val) {
+            setState(
+              () {
+                selectedValue = val as String;
+                // selectedValue = newData;
+              },
+            );
+          },
+          icon: Image.asset(
+            "assets/images/down.png",
+            height: 25,
+            width: 25,
+          ),
+        ),
         // dropdownColor: Color(0xFFF6F7F8),
         // decoration: InputDecoration(
         //     // labelText: "Choose Area",
