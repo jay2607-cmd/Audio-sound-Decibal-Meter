@@ -127,6 +127,7 @@
 //   late List<ChewieController> _chewieControllers;
 //
 //   late VideoPlayerController videoPlayerController;
+//
 //   @override
 //   void initState() {
 //     super.initState();
@@ -302,12 +303,19 @@
 //       children: [
 //         ElevatedButton(
 //           onPressed: () async {
+//             // _files.removeAt(0);
+//             _files.clear();
+//             _files = [];
 //             final file =
 //                 await ImagePicker().pickVideo(source: ImageSource.gallery);
 //             if (file != null) {
 //               print("Picker ${file.path}");
 //               setState(() {
 //                 // if (_files.isEmpty) {
+//                 if(_files.isNotEmpty) {
+//                   _files.removeAt(0);
+//                   _files.clear();
+//                 }
 //                 _files.add(File(file.path));
 //                 // }
 //                 // else {
@@ -322,160 +330,167 @@
 //           },
 //           child: const Text("Select Video"),
 //         ),
-//         for (final file in _files)
-//           VideoPlayerView(
-//             files: [file],
-//             dataSourceType: DataSourceType.file,
-//           ),
+//         for (final file in _files) playVideo(file, _files),
 //       ],
 //     );
 //   }
 // }
-import 'dart:async';
-import 'dart:io';
-
-import 'package:flutter/material.dart';
-import 'package:jay_sound_meter/logic/dB_meter.dart';
-import 'package:noise_meter/noise_meter.dart';
-import 'package:video_player/video_player.dart';
-
-class VideoDemo extends StatefulWidget {
-  VideoDemo({super.key, required this.videoPath});
-  final String videoPath;
-
-  @override
-  State<VideoDemo> createState() => VideoDemoState();
-}
-
-class VideoDemoState extends State<VideoDemo> {
-  // variable for noise Reading
-  bool isRecording = false;
-  bool _isPlaying = false;
-  StreamSubscription<NoiseReading>? noiseSubscription;
-  late NoiseMeter noiseMeter;
-  double maxDB = 0;
-  double? meanDB;
-
-  void onData(NoiseReading noiseReading) {
-    setState(() {
-      if (controller.value.isPlaying) {
-        _isPlaying = true;
-      } else {
-        _isPlaying = false;
-        stop();
-      }
-      // print("dataa: {$_isPlaying}");
-    });
-    maxDB = noiseReading.maxDecibel;
-    meanDB = noiseReading.meanDecibel;
-  }
-
-  // error handle
-  void onError(Object e) {
-    isRecording = false;
-  }
-
-  void start() async {
-    try {
-      noiseSubscription = noiseMeter.noiseStream.listen(onData);
-    } catch (e) {
-      print(e);
-    }
-  }
-
-  void stop() async {
-    try {
-      noiseSubscription!.cancel();
-      noiseSubscription = null;
-
-      // setState(() => {},);
-    } catch (e) {
-      print('stopRecorder error: $e');
-    }
-  }
-
-  late VideoPlayerController controller;
-  late Future<void> video;
-
-  @override
-  void initState() {
-    super.initState();
-    noiseMeter = NoiseMeter(onError);
-    controller = VideoPlayerController.file(File(widget.videoPath));
-    video = controller.initialize();
-    controller.setLooping(false);
-    controller.setVolume(1.0);
-  }
-
-  @override
-  void dispose() {
-    stop();
-    controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        body: Column(
-          children: [
-            Expanded(
-              child: FutureBuilder(
-                future: video,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    return AspectRatio(
-                      aspectRatio: controller.value.aspectRatio,
-                      child: VideoPlayer(controller),
-                    );
-                  } else {
-                    return Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  }
-                },
-              ),
-            ),
-            SizedBox(
-              height: 25,
-            ),
-            dBMeter(maxDB),
-          ],
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            setState(() {
-              if (_isPlaying) {
-                _onPause();
-                stop();
-              } else {
-                _onPlay();
-                start();
-              }
-            });
-          },
-          child:
-              Icon(controller.value.isPlaying ? Icons.pause : Icons.play_arrow),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _onPause() async {
-    controller.pause();
-    setState(() {
-      _isPlaying = false;
-      stop();
-    });
-  }
-
-  Future<void> _onPlay() async {
-    if (!_isPlaying) {
-      controller.play();
-      setState(() {
-        _isPlaying = true;
-      });
-    }
-  }
-}
+//
+// Widget playVideo(File file, List<File> files) {
+//   print("PlayVideoLength: ${files.length}");
+//   return VideoPlayerView(
+//     files: [file],
+//     dataSourceType: DataSourceType.file,
+//   );
+// }
+// /*
+//
+// import 'dart:async';
+// import 'dart:io';
+//
+// import 'package:flutter/material.dart';
+// import 'package:jay_sound_meter/logic/dB_meter.dart';
+// import 'package:noise_meter/noise_meter.dart';
+// import 'package:video_player/video_player.dart';
+//
+// class VideoDemo extends StatefulWidget {
+//   VideoDemo({super.key, required this.videoPath});
+//   final String videoPath;
+//
+//   @override
+//   State<VideoDemo> createState() => VideoDemoState();
+// }
+//
+// class VideoDemoState extends State<VideoDemo> {
+//   // variable for noise Reading
+//   bool isRecording = false;
+//   bool _isPlaying = false;
+//   StreamSubscription<NoiseReading>? noiseSubscription;
+//   late NoiseMeter noiseMeter;
+//   double maxDB = 0;
+//   double? meanDB;
+//
+//   void onData(NoiseReading noiseReading) {
+//     setState(() {
+//       if (controller.value.isPlaying) {
+//         _isPlaying = true;
+//       } else {
+//         _isPlaying = false;
+//         stop();
+//       }
+//       // print("dataa: {$_isPlaying}");
+//     });
+//     maxDB = noiseReading.maxDecibel;
+//     meanDB = noiseReading.meanDecibel;
+//   }
+//
+//   // error handle
+//   void onError(Object e) {
+//     isRecording = false;
+//   }
+//
+//   void start() async {
+//     try {
+//       noiseSubscription = noiseMeter.noiseStream.listen(onData);
+//     } catch (e) {
+//       print(e);
+//     }
+//   }
+//
+//   void stop() async {
+//     try {
+//       noiseSubscription!.cancel();
+//       noiseSubscription = null;
+//
+//       // setState(() => {},);
+//     } catch (e) {
+//       print('stopRecorder error: $e');
+//     }
+//   }
+//
+//   late VideoPlayerController controller;
+//   late Future<void> video;
+//
+//   @override
+//   void initState() {
+//     super.initState();
+//     noiseMeter = NoiseMeter(onError);
+//     controller = VideoPlayerController.file(File(widget.videoPath));
+//     video = controller.initialize();
+//     controller.setLooping(false);
+//     controller.setVolume(1.0);
+//   }
+//
+//   @override
+//   void dispose() {
+//     stop();
+//     controller.dispose();
+//     super.dispose();
+//   }
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return SafeArea(
+//       child: Scaffold(
+//         body: Column(
+//           children: [
+//             Expanded(
+//               child: FutureBuilder(
+//                 future: video,
+//                 builder: (context, snapshot) {
+//                   if (snapshot.connectionState == ConnectionState.done) {
+//                     return AspectRatio(
+//                       aspectRatio: controller.value.aspectRatio,
+//                       child: VideoPlayer(controller),
+//                     );
+//                   } else {
+//                     return Center(
+//                       child: CircularProgressIndicator(),
+//                     );
+//                   }
+//                 },
+//               ),
+//             ),
+//             SizedBox(
+//               height: 25,
+//             ),
+//             dBMeter(maxDB),
+//           ],
+//         ),
+//         floatingActionButton: FloatingActionButton(
+//           onPressed: () {
+//             setState(() {
+//               if (_isPlaying) {
+//                 _onPause();
+//                 stop();
+//               } else {
+//                 _onPlay();
+//                 start();
+//               }
+//             });
+//           },
+//           child:
+//               Icon(controller.value.isPlaying ? Icons.pause : Icons.play_arrow),
+//         ),
+//       ),
+//     );
+//   }
+//
+//   Future<void> _onPause() async {
+//     controller.pause();
+//     setState(() {
+//       _isPlaying = false;
+//       stop();
+//     });
+//   }
+//
+//   Future<void> _onPlay() async {
+//     if (!_isPlaying) {
+//       controller.play();
+//       setState(() {
+//         _isPlaying = true;
+//       });
+//     }
+//   }
+// }
+// */

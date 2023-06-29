@@ -21,7 +21,11 @@ enum RecordingState {
 }
 
 class _RecorderViewState extends State<RecorderView> {
-  late Image _recordIcon;
+   Image _recordIcon = Image.asset(
+    'assets/images/mic.png',
+    height: 80,
+    width: 80,
+  );
   String _recordText = 'Click To Start';
 
   // RecordingState - Inbuilt variable for handling recording's state
@@ -45,6 +49,9 @@ class _RecorderViewState extends State<RecorderView> {
           _recordText = 'Record';
         });
       }
+      // else{
+
+      // }
     });
   }
 

@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:jay_sound_meter/boxes/boxes.dart';
 import 'package:jay_sound_meter/database/save_model.dart';
@@ -28,11 +29,50 @@ class SaveMainState extends State<SaveMain> {
       required this.time,
       required this.area});
 
+  final box = Boxes.getData();
+
   @override
   Widget build(BuildContext context) {
     print(dBNoise);
     return Scaffold(
       appBar: AppBar(
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: IconButton(
+                icon: Image.asset("assets/images/d1.png"),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text('Warning!',
+                            style: TextStyle(color: Colors.red)),
+                        content: const Text(
+                            'Do you really want to delete all images!'),
+                        actions: [
+                          TextButton(
+                            child: const Text('Cancel'),
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                          ),
+                          TextButton(
+                            child: Text('OK'),
+                            onPressed: () {
+                              deleteAll();
+                              Navigator.pop(context);
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                  setState(() {});
+                }),
+          ),
+
+        ],
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: Padding(
@@ -199,5 +239,11 @@ class SaveMainState extends State<SaveMain> {
 
   void delete(SaveModel saveModel) async {
     await saveModel.delete();
+    // Hive.box("SaveModel").clear();
   }
+
+  void deleteAll() async {
+    box.clear();
+  }
+
 }

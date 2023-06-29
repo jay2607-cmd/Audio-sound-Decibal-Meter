@@ -169,65 +169,64 @@ class NoiseAppState extends State<NoiseApp> with WidgetsBindingObserver {
           ),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        floatingActionButton: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            GestureDetector(
-              onDoubleTap: () {},
-              child: Container(
-                height: 50,
-                width: 175,
+        floatingActionButton: Container(
+          margin: EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onDoubleTap: () {},
+                  child: FloatingActionButton.extended(
+                    heroTag: isRecording ? 'STOP' : 'START',
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(5.0))),
+                    label: Text(
+                      isRecording ? 'STOP' : 'START',
+                      style: kButtonTextStyle,
+                    ),
+                    onPressed: isRecording ? stop : start,
+                    backgroundColor:
+                        isRecording ? Color(0xFFFF5959) : Color(0xFF1C95FF),
+                  ),
+                ),
+              ),
+              const SizedBox(
+                width: 15,
+              ),
+              Expanded(
                 child: FloatingActionButton.extended(
-                  heroTag: isRecording ? 'STOP' : 'START',
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(5.0))),
-                  label: Text(
-                    isRecording ? 'STOP' : 'START',
+                  label: const Text(
+                    "SAVE",
                     style: kButtonTextStyle,
                   ),
-                  onPressed: isRecording ? stop : start,
-                  backgroundColor:
-                      isRecording ? Color(0xFFFF5959) : Color(0xFF1C95FF),
+                  heroTag: "SAVE",
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(5.0))),
+                  backgroundColor: Color(0xFF33CC66),
+                  onPressed: () {
+                    final data = SaveModel(
+                        noiseData: maxDB,
+                        date: date,
+                        time: time,
+                        area: selectedValue.toString());
+
+                    final box = Boxes.getData();
+
+                    // forcefully added typecast
+                    box.add(data);
+
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => SaveMain(
+                              maxDB, date, time, selectedValue.toString())),
+                    );
+                  },
                 ),
               ),
-            ),
-            const SizedBox(
-              width: 15,
-            ),
-            Container(
-              height: 50,
-              width: 175,
-              child: FloatingActionButton.extended(
-                label: const Text(
-                  "SAVE",
-                  style: kButtonTextStyle,
-                ),
-                heroTag: "SAVE",
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(5.0))),
-                backgroundColor: Color(0xFF33CC66),
-                onPressed: () {
-                  final data = SaveModel(
-                      noiseData: maxDB,
-                      date: date,
-                      time: time,
-                      area: selectedValue.toString());
-
-                  final box = Boxes.getData();
-
-                  // forcefully added typecast
-                  box.add(data);
-
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => SaveMain(
-                            maxDB, date, time, selectedValue.toString())),
-                  );
-                },
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.center,

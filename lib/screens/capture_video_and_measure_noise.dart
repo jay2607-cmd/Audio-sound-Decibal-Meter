@@ -5,6 +5,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:hive/hive.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
@@ -16,7 +17,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:video_player/video_player.dart';
 
 import '../utils/constants.dart';
-
 
 class CameraExampleHome extends StatefulWidget {
   final List<CameraDescription> cameras;
@@ -89,7 +89,6 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
   late NoiseMeter noiseMeter;
   double maxDB = 0;
   double? meanDB;
-
 
   @override
   void initState() {
@@ -204,11 +203,14 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: 8.0),
-              child: IconButton(onPressed: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => ImageListScreen()));}, icon: Image.asset("assets/images/history.png")),
+              child: IconButton(
+                  onPressed: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => ImageListScreen()));
+                  },
+                  icon: Image.asset("assets/images/history.png")),
             )
           ],
           backgroundColor: Colors.transparent,
@@ -234,57 +236,101 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
             ),
           ),
         ),
-
         body: Column(
           children: <Widget>[
             Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.black,
-                  border: Border.all(
-                    color:
-                        controller != null && controller!.value.isRecordingVideo
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                      color: Colors.black,
+                      border: Border.all(
+                        color: controller != null &&
+                                controller!.value.isRecordingVideo
                             ? Colors.redAccent
                             : Colors.grey,
-                    width: 3.0,
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(1.0),
-                  child: Center(
-                    child: _cameraPreviewWidget(),
+                        width: 3.0,
+                      ),
+                      borderRadius: BorderRadius.circular(10)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(1.0),
+                    child: Center(
+                      child: Stack(
+                        children: [
+                          Align(
+                            alignment: Alignment.center,
+                            child: _cameraPreviewWidget(),
+                          ),
+                          Align(
+                              alignment: Alignment.bottomCenter,
+                              child: _captureControlRowWidget()),
+                          Align(
+                              alignment: Alignment.topRight,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Container(
+                                    decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(30),
+                                        color: Color(0xff4EACD2)),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(4.0),
+                                      child: Text(
+                                        " ${maxDB.toStringAsFixed(0)} dB ",
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    )),
+                              )),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
             ),
-            _captureControlRowWidget(),
             // _modeControlRowWidget(),
-            Padding(
+           /* Padding(
               padding: const EdgeInsets.all(5.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
-                  _cameraTogglesRowWidget(),
+                  // _cameraTogglesRowWidget(),
                   // _thumbnailWidget(),
                 ],
               ),
-            ),
+            ),*/
             Row(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ElevatedButton(
-                    onPressed: () {
-                      _captureScreenshot();
-                      counter++;
-                    },
-                    child: const Text("Screenshot")),
-                SizedBox(
-                  width: 25,
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0, vertical: 8),
+                    child: Container(
+                      height: 50,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(5),
+                        color: Color(0xFF1C95FF),
+                      ),
+                      child: ElevatedButton(
+                          onPressed: () {
+                            _captureScreenshot();
+                          },
+                          child: const Text(
+                            "Screenshot",
+                            style: kButtonTextStyle,
+                          )),
+                    ),
+                  ),
                 ),
               ],
             ),
+            SizedBox(
+              width: 25,
+            ),
 
-            dBMeter(maxDB),
+            Container(height: 350, child: dBMeter(maxDB)),
           ],
         ),
       ),
@@ -649,7 +695,8 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
         // ),
 
         IconButton(
-          icon: const Icon(Icons.videocam),
+          iconSize: 40,
+          icon: Image.asset("assets/images/videocam.png"),
           color: Colors.blue,
           onPressed: () {
             if (cameraController != null &&
@@ -665,22 +712,10 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
           },
         ),
 
+        // video recording stop button
         IconButton(
-          icon: cameraController != null &&
-                  cameraController.value.isRecordingPaused
-              ? const Icon(Icons.play_arrow)
-              : const Icon(Icons.pause),
-          color: Colors.blue,
-          onPressed: cameraController != null &&
-                  cameraController.value.isInitialized &&
-                  cameraController.value.isRecordingVideo
-              ? (cameraController.value.isRecordingPaused)
-                  ? onResumeButtonPressed
-                  : onPauseButtonPressed
-              : null,
-        ),
-        IconButton(
-          icon: const Icon(Icons.stop),
+          iconSize: 40,
+          icon: Image.asset("assets/images/stop2.png"),
           color: Colors.red,
           onPressed: () {
             if (cameraController != null &&
@@ -696,29 +731,134 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
           },
         ),
 
+        // video pause button
         IconButton(
-          icon: const Icon(Icons.pause_presentation),
-          color:
+          iconSize: 40,
+          icon: cameraController != null &&
+                  cameraController.value.isRecordingPaused
+              ? Image.asset("assets/images/pause2.png")
+              : Image.asset("assets/images/play.png"),
+          color: Colors.blue,
+          onPressed: cameraController != null &&
+                  cameraController.value.isInitialized &&
+                  cameraController.value.isRecordingVideo
+              ? (cameraController.value.isRecordingPaused)
+                  ? onResumeButtonPressed
+                  : onPauseButtonPressed
+              : null,
+        ),
+
+        // camera stop button
+        IconButton(
+          iconSize: 40,
+          icon:
               cameraController != null && cameraController.value.isPreviewPaused
-                  ? Colors.red
-                  : Colors.blue,
+                  ? Image.asset("assets/images/vstop_on.png")
+                  : Image.asset("assets/images/vstop_off.png"),
           onPressed:
               cameraController == null ? null : onPausePreviewButtonPressed,
         ),
+
+        // toggle button
+        // IconButton(
+        //     iconSize: 40,
+        //     icon: cameraController != null &&
+        //             cameraController.value.isPreviewPaused
+        //         ? Image.asset("assets/images/cam_rot.png")
+        //         : Image.asset("assets/images/cam_rot.png"),
+        //     onPressed: () {
+        //       _cameraTogglesRowWidget();
+        //     }),
+    _cameraTogglesRowWidget(),
       ],
     );
   }
 
   /// Display a row of toggle to select the camera (or a message if no camera is available).
+  // Widget _cameraTogglesRowWidget() {
+  //   final List<Widget> toggles = <Widget>[];
+  //
+  //   void onChanged(CameraDescription? description) {
+  //     if (description == null) {
+  //       return;
+  //     }
+  //
+  //     onNewCameraSelected(description);
+  //   }
+  //
+  //   if (cameras.isEmpty) {
+  //     SchedulerBinding.instance.addPostFrameCallback((_) async {
+  //       showInSnackBar('No camera found.');
+  //     });
+  //     return const Text('None');
+  //   } else {
+  //     for (final CameraDescription cameraDescription in cameras) {
+  //       toggles.add(
+  //         SizedBox(
+  //           width: 90.0,
+  //           child: IconButton(
+  //             // title: Icon(getCameraLensIcon(cameraDescription.lensDirection)),
+  //             // title: Text("Start"),
+  //             // groupValue: controller?.description,
+  //             // value: cameraDescription,
+  //             // onChanged: onChanged,
+  //             icon: Image.asset("assets/images/cam_rot.png"),
+  //             onPressed: () => onChanged(cameraDescription),
+  //           ),
+  //         ),
+  //       );
+  //     }
+  //   }
+  //
+  //   return Row(children: toggles);
+  // }
+
+  // Widget _cameraTogglesRowWidget() {
+  //   final List<bool> isSelected = List<bool>.generate(cameras.length, (index) => false);
+  //
+  //   void onChanged(int index) {
+  //     onNewCameraSelected(cameras[index]);
+  //   }
+  //
+  //   if (cameras.isEmpty) {
+  //     SchedulerBinding.instance.addPostFrameCallback((_) async {
+  //       showInSnackBar('No camera found.');
+  //     });
+  //     return const Text('None');
+  //   }
+  //
+  //   return ToggleButtons(
+  //     children: [
+  //       Icon(getCameraLensIcon(cameras[0].lensDirection)), // Front camera icon
+  //       Icon(getCameraLensIcon(cameras[1].lensDirection)), // Back camera icon
+  //     ],
+  //     onPressed: (int index) {
+  //       for (int buttonIndex = 0; buttonIndex < isSelected.length; buttonIndex++) {
+  //         isSelected[buttonIndex] = (buttonIndex == index);
+  //       }
+  //       onChanged(index);
+  //     },
+  //     isSelected: isSelected,
+  //   );
+  // }
+
+  int currentCameraIndex = 0; // Index of the current camera
+
   Widget _cameraTogglesRowWidget() {
-    final List<Widget> toggles = <Widget>[];
+    void toggleCamera() {
+      if (currentCameraIndex == 0) {
+        currentCameraIndex = (currentCameraIndex + 1) % cameras.length;
+        // currentCameraIndex++;
+        onNewCameraSelected(cameras[currentCameraIndex]);
 
-    void onChanged(CameraDescription? description) {
-      if (description == null) {
-        return;
+        print("if after ++ ${currentCameraIndex}");
+      } else if (currentCameraIndex == 1) {
+        currentCameraIndex = (currentCameraIndex - 1) % cameras.length;
+        // currentCameraIndex--;
+        onNewCameraSelected(cameras[currentCameraIndex]);
+        // currentCameraIndex--;
+        print("else after -- ${currentCameraIndex}");
       }
-
-      onNewCameraSelected(description);
     }
 
     if (cameras.isEmpty) {
@@ -726,24 +866,13 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
         showInSnackBar('No camera found.');
       });
       return const Text('None');
-    } else {
-      for (final CameraDescription cameraDescription in cameras) {
-        toggles.add(
-          SizedBox(
-            width: 90.0,
-            child: RadioListTile<CameraDescription>(
-              title: Icon(getCameraLensIcon(cameraDescription.lensDirection)),
-              // title: Text("Start"),
-              groupValue: controller?.description,
-              value: cameraDescription,
-              onChanged: onChanged,
-            ),
-          ),
-        );
-      }
     }
 
-    return Row(children: toggles);
+    return IconButton(
+      iconSize: 40,
+      icon: Image.asset("assets/images/cam_rot.png"),
+      onPressed: toggleCamera,
+    );
   }
 
   String timestamp() => DateTime.now().millisecondsSinceEpoch.toString();
@@ -780,7 +909,7 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
       CameraDescription cameraDescription) async {
     final CameraController cameraController = CameraController(
       cameraDescription,
-      kIsWeb ? ResolutionPreset.max : ResolutionPreset.medium,
+      kIsWeb ? ResolutionPreset.max : ResolutionPreset.max,
       enableAudio: enableAudio,
       imageFormatGroup: ImageFormatGroup.jpeg,
     );
@@ -1189,9 +1318,8 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
     logError(e.code, e.description);
     showInSnackBar('Error: ${e.code}\n${e.description}');
   }
-  int counter = 0;
-  void _captureScreenshot() async {
 
+  void _captureScreenshot() async {
     RenderRepaintBoundary boundary =
         _key.currentContext!.findRenderObject() as RenderRepaintBoundary;
     if (boundary.debugNeedsPaint) {
@@ -1210,11 +1338,10 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
       //     name: "Screenshot-${DateTime.now()}.png");
       // print("SaveImage : $saveImage");
 
-
       //write an image
       final directory = await getExternalStorageDirectory();
-      final imagePath = await File('${directory!.path}/${DateTime.now()
-          }.png').create();
+      final imagePath =
+          await File('${directory!.path}/${DateTime.now()}.png').create();
       print('Image Path : ${imagePath}');
       await imagePath.writeAsBytes(byteData.buffer.asUint8List());
     }

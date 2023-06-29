@@ -497,27 +497,32 @@ class _RecordListViewState extends State<RecordListView>
                               dateAndTime(i),
                             ],
                           ),
-                          trailing: isExpanded
+                          // trailing: isExpanded
+                          //     ? Image.asset("assets/images/up.png", width: 23)
+                          //     : Image.asset("assets/images/down.png",
+                          //         width: 23),
+                          trailing:
+                               _selectedIndex == i && isExpanded
+                                ? Image.asset("assets/images/up.png", width: 23)
+                                : Image.asset("assets/images/down.png", width: 23),
 
-                              ? Image.asset(
-                                  "assets/images/up.png",
-                                  width: 23,
-                                )
-                              : Image.asset(
-                                  "assets/images/down.png",
-                                  width: 23,
-                                ),
 
-                          onExpansionChanged: ((newState) {
-                            if (newState) {
-                              setState(
-                                () {
-                                  _selectedIndex = i;
-                                },
-                              );
-                            }
-                          }),
+                          // onExpansionChanged: ((newState) {
+                          //   if (newState) {
+                          //     setState(
+                          //       () {
+                          //         _selectedIndex = i;
+                          //       },
+                          //     );
+                          //   }
+                          // }),
 
+                          onExpansionChanged: (bool expanded) {
+                            setState(() {
+                              isExpanded = expanded;
+                              _selectedIndex = i;
+                            });
+                          },
 
                           children: [
                             // dropDown container

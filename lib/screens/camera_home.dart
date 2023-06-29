@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:jay_sound_meter/screens/capture_video_and_measure_noise.dart';
 import 'package:jay_sound_meter/screens/pickFile.dart';
+import 'package:jay_sound_meter/screens/upload_video_noise_measure.dart';
 import 'package:jay_sound_meter/screens/views/reusable_grid_view.dart';
 
 class CameraHome extends StatelessWidget {
@@ -80,7 +81,7 @@ class CameraHome extends StatelessWidget {
                           imgPath: "assets/images/camera.png",
                         ),
                         ReusableGridView(
-                          className: Picker(),
+                          className: PickFile(),
                           label1: "",
                           label2: "Gallery",
                           imgPath: "assets/images/folder.png",

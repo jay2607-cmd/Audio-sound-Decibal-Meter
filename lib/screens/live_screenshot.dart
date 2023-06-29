@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:jay_sound_meter/screens/screenshot_preview.dart';
 import 'package:path_provider/path_provider.dart';
+
+import '../utils/constants.dart';
 
 class ImageListScreen extends StatefulWidget {
   @override
@@ -59,11 +60,23 @@ class _ImageListScreenState extends State<ImageListScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('PNG Images'),
-        centerTitle: true,
+        // actions: [
+        //   Padding(
+        //     padding: const EdgeInsets.only(right: 8.0),
+        //     child: IconButton(
+        //         onPressed: () {
+        //           Navigator.push(
+        //               context,
+        //               MaterialPageRoute(
+        //                   builder: (context) => ImageListScreen()));
+        //         },
+        //         icon: Image.asset("assets/images/d1.png")),
+        //   )
+        // ],
+
         actions: [
           IconButton(
-              icon: Icon(Icons.delete_forever),
+              icon: Image.asset("assets/images/d1.png"),
               onPressed: () {
                 showDialog(
                   context: context,
@@ -94,42 +107,69 @@ class _ImageListScreenState extends State<ImageListScreen>
                 setState(() {});
               }),
         ],
-      ),
-      body: GridView.builder(
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
-          crossAxisSpacing: 8.0,
-          mainAxisSpacing: 50.0,
-        ),
-        itemCount: imageFiles.length,
-        itemBuilder: (BuildContext context, int index) {
-          file = imageFiles[index];
-          return GestureDetector(
-            onTap: () {
-              print("${index}");
-              Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => ScreenshotPreview(
-                            filePath: imageFiles[index].path,
-                            file: imageFiles[index],
-                            imageFiles: imageFiles,
-                            index: index,
-                          )));
-            },
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: Image.file(file),
-                ),
-                Text(file.path.substring(67, 77)),
-                Text(file.path.substring(77, 86)),
-              ],
+
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16.0),
+          child: IconButton(
+            icon: Image.asset(
+              'assets/images/back.png',
+              height: 28,
+              width: 28,
             ),
-          );
-        },
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+        ),
+        title: Padding(
+          padding: const EdgeInsets.only(left: 8.0),
+          child: Text(
+            "Saved Screenshot",
+            style: kAppbarStyle,
+          ),
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16),
+        child: GridView.builder(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            childAspectRatio: 1.5 / 3,
+            crossAxisSpacing: 20.0,
+            mainAxisSpacing: 30.0,
+          ),
+          itemCount: imageFiles.length,
+          itemBuilder: (BuildContext context, int index) {
+            file = imageFiles[index];
+            return GestureDetector(
+              onTap: () {
+                print("${index}");
+                Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => ScreenshotPreview(
+                              filePath: imageFiles[index].path,
+                              file: imageFiles[index],
+                              imageFiles: imageFiles,
+                              index: index,
+                            )));
+              },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Image.file(file),
+                  ),
+                  Text(file.path.substring(67, 77)),
+                  Text(file.path.substring(77, 86)),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }

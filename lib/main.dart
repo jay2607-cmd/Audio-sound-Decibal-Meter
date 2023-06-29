@@ -57,10 +57,7 @@ class _MyAppState extends State<MyApp> {
           Theme.of(context).textTheme,
         ),
       ),
-      home: HomeScreen(
-        cameras: cameras,
-        logError: logError,
-      ),
+      home: SplashScreen()
     );
   }
 }
