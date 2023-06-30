@@ -32,7 +32,7 @@ class CameraExampleHome extends StatefulWidget {
 }
 
 /// Returns a suitable camera icon for [direction].
-IconData getCameraLensIcon(CameraLensDirection direction) {
+/*IconData getCameraLensIcon(CameraLensDirection direction) {
   switch (direction) {
     case CameraLensDirection.back:
       return Icons.camera_rear;
@@ -45,7 +45,7 @@ IconData getCameraLensIcon(CameraLensDirection direction) {
   // any time. The example should keep working if that happens.
   // ignore: dead_code
   return Icons.camera;
-}
+}*/
 
 class _CameraExampleHomeState extends State<CameraExampleHome>
     with WidgetsBindingObserver, TickerProviderStateMixin {
@@ -131,6 +131,7 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
     _exposureModeControlRowAnimationController.dispose();
     // noiseStop();
     super.dispose();
+
   }
 
   void onData(NoiseReading noiseReading) {
@@ -173,7 +174,7 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     final CameraController? cameraController = controller;
-    cameraController?.dispose();
+    // cameraController?.dispose();
 
     if (state == AppLifecycleState.resumed ||
         state == AppLifecycleState.paused) {
@@ -316,6 +317,7 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
                       child: ElevatedButton(
                           onPressed: () {
                             _captureScreenshot();
+                            showInSnackBar('Screenshot Captured');
                           },
                           child: const Text(
                             "Screenshot",
@@ -387,7 +389,7 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
     await controller!.setZoomLevel(_currentScale);
   }
 
-  /// Display the thumbnail of the captured image or video.
+/*  /// Display the thumbnail of the captured image or video.
   // Widget _thumbnailWidget() {
   //   final VideoPlayerController? localVideoController = videoController;
   //
@@ -674,7 +676,7 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
   //       ),
   //     ),
   //   );
-  // }
+  // }*/
 
   /// Display the control bar with buttons to take pictures and record videos.
   Widget _captureControlRowWidget() {
@@ -774,7 +776,7 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
     );
   }
 
-  /// Display a row of toggle to select the camera (or a message if no camera is available).
+/*  /// Display a row of toggle to select the camera (or a message if no camera is available).
   // Widget _cameraTogglesRowWidget() {
   //   final List<Widget> toggles = <Widget>[];
   //
@@ -840,7 +842,7 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
   //     },
   //     isSelected: isSelected,
   //   );
-  // }
+  // }*/
 
   int currentCameraIndex = 0; // Index of the current camera
 
@@ -1261,7 +1263,7 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
     }
   }
 
-  //
+  /*//
   // Future<void> _startVideoPlayer() async {
   //   if (videoFile == null) {
   //     return;
@@ -1312,7 +1314,7 @@ class _CameraExampleHomeState extends State<CameraExampleHome>
   //     _showCameraException(e);
   //     return null;
   //   }
-  // }
+  // }*/
 
   void _showCameraException(CameraException e) {
     logError(e.code, e.description);
