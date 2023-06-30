@@ -2,6 +2,13 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+
+<!-- camera permission -->
+<key>NSPhotoLibraryUsageDescription</key>               <!-- added this for photo library permission -->
+<string>Need library access to upload images</string> <!-- added this for photo library permission -->
+<key>NSCameraUsageDescription</key> <!-- added this for camera permission -->
+<string>Need camera access to take pictures</string> <!-- added this for camera permission -->
+
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)

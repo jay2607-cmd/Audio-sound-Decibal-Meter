@@ -56,8 +56,8 @@ class _RecorderViewState extends State<RecorderView> {
   }
 
   @override
-  void dispose() {
-    _recordingState = RecordingState.UnSet;
+  void dispose()  {
+     _stopRecording();
     super.dispose();
   }
 

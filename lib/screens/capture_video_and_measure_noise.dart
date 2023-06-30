@@ -11,6 +11,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:jay_sound_meter/logic/dB_meter.dart';
+import 'package:jay_sound_meter/screens/home_screen.dart';
 import 'package:jay_sound_meter/screens/live_screenshot.dart';
 import 'package:noise_meter/noise_meter.dart';
 import 'package:path_provider/path_provider.dart';
